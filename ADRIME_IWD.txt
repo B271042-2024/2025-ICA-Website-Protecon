@@ -1,0 +1,103 @@
+# information
+deadline: 250404
+
+
+
+
+# objectives
+1. User can obtain a set of protein seq from a user-defined subset of taxonomic tree (e.g. glucose-g-phosphatase proteins from Aves)
+2. analysis 1: determine level of conservation across the species within the taxonomic group -> generate report/plots
+3. analysis 2: PROSITE for motifs in protein seq of interest -> generate reports/plots
+4. do other analyses (EMBOSS etc.) that can add relevant bio info to the outputs -> generate reports/plots
+5. provide an example dataset (G6P from Aves) to illustrate all functionalities
+6. enables user to revisit previously generated data (cookie)
+
+
+
+
+# workflow
+#Page1 --main page
+	- either here/main/help: github link to codes
+
+Input1:		| protein family |		e.g. Glucose-G-Phosphatase (Click to use)
+
+Input2:		| taxonomic group |		e.g. Aves (Click to use)
+
+-----
+
+Analysis1:	| plotcon/python tool |		info: to generate protein conservation level across species in query group	
+
+Analysis2:	| motifs - patmatmotifs |	info: using PROSITE database to find motifs/domains
+
+
+#Page2 --additional fxnality
+
+
+#Page3 --about
+	- overview how all is implemented (no examples of code) aimed at web developer audience
+	- either here/main/help: github link to codes
+
+#Page4 --help
+	- biological rationale for what is implemented (not the underlying code)
+	- either here/main/help: github link to codes
+
+
+
+
+# directions
+1. input1: use esearch, efetch, etc. (if possible drop-down bar) - Use NCBI API token
+	- error handling: if not exist then, stop and message
+	- error handling: if many then then, dropdown bar to select 
+
+2. core function: see how similar the sequences via a graphical representation
+	- EMBOSS plotcon OR
+	- Python plot
+
+3. decisions
+	- filter seq inputs: taxonomic basis/number/sizes
+	- filter outputs w ref for every alterations, specified outputs for the next process
+
+4. analyses
+	- clustalo
+	- blast
+
+5. key goal
+	- biological insights to user
+
+6. Example dataset
+
+7. User's analyses store in MySQL database
+
+
+
+# rules
+Do
+	- check if the tools used are available on the server (else: include download or sth)
+	- hosted under: ${HOME}/public_html/Website/
+	- PDO for SQL interactions
+	- as part of website, a web page for "Statement of Credits": list in detail with links
+		- sources of any code used (w or without modification)
+		- which AI tools used & what for (should not be vague)
+	- Submit a document from Learn w
+		- B number
+		- link to website (https://bioinfmsc8.bio.ed.ac.uk/~aivens2/MyLovelyWebsite/index.html)
+
+Dont
+	- No R
+	- No python to interact with SQL (do from php using PDO)
+
+
+# to achive > 50%,
+- high user satisfaction (useful biological information resource)
+- high quality UI (simple to use, structured, attractive visuals)
+- tables/views required to support the functionalities
+- useful comments to the code
+- style changes via inline style option
+- style changes via global style sheet
+- extra fxn
+- extra webpages involving significant dev o fcode
+- add new functional aspects involving externally developed web tools
+- add links to external web sites
+- generate report/plot
+- good interface
+- link to GitHub repository for the website code

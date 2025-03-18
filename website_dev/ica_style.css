@@ -1,0 +1,48 @@
+div.header_bar{
+	background-color: #EFEBD8;
+	display: flex;
+        align-items: center;            /* vertically center items */
+        justify-content: space-between;         /* horizontally centers items within container */
+	padding: 8px 40px;
+	box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+}
+
+#header_menu{
+	font-size: 20px;
+	display: flex;		/* apply flexbox to the container to ease alignment */
+	align-items:center;
+	justify-content: center;
+}
+
+#header_menu li{
+        list-style: none;               /* remove <ul> bulletpoints */
+        padding: 0 50px;
+}
+
+
+#header_menu li a{
+	text-decoration: none;
+	font: 20px Arial, sans-serif;
+	font-weight: bold;
+	color: black;
+}
+
+#header_menu li a:hover{
+	color: #FFA500	
+}
+
+#header_menu li a:active{
+	color: #FFA500
+}
+
+#header_menu li a:visited{
+	color: black
+}
+
+p{
+	font: 15px Arial, sans-serif;
+}
+
+
+/* .class = for class (many elements under 1 class) */
+/* #id = for each element */
