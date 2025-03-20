@@ -1,11 +1,11 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['step'])){$_SESSION['step'] = 0;}
-if (isset($_POST['button1'])){$_SESSION['step'] = 1;}
-if (isset($_POST['button2'])){$_SESSION['step'] = 2;}	//show button 3 & message
-if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
-
+	// Tool 1: Extract details from NCBI protein
+	if (!isset($_SESSION['step'])){$_SESSION['step'] = 0;}
+	if (isset($_POST['button1'])){$_SESSION['step'] = 1;}
+	if (isset($_POST['button2'])){$_SESSION['step'] = 2;}	//show button 3 & message
+	if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
 ?>
 
 <!DOCTYPE html>
@@ -20,7 +20,7 @@ if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
 
 	<style>
 		.input_group{
-			width: 100%;
+			width: 80%;
 			display: grid;
 			grid-template-columns: 1fr 1fr 1fr;
 			gap: 10px;
@@ -33,17 +33,36 @@ if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
 		}
 		.input_group input{
 			padding: 8px;
+			font: 18px
 		}
 		.input_group span{
 			font-style: italic;
 		}
 		button {
 			margin-top: 5px;
-			padding: 10px 15px;
-			font-size: 15px;
+			padding: 10px 40px;
+			border-radius: 10px;
+			color: white;
+			background-color: black;
+			border: none;
+			font-size: 18px;
 			font-weight: bold;
 			cursor: pointer;
+			;
 		}
+		.input_checkbox{
+			width: 40%;
+			display: grid;
+			grid-template-columns: 30px auto;
+			gap: 10px;
+			padding: 8px;
+			align-items: center;
+			font: 18px Arial, sans-serif;
+		}
+		.input_checkbox input[type="checkbox"]{
+			transform: scale(1.5)
+		}
+
 	</style>
 
 
@@ -55,30 +74,90 @@ if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
 		<br>
 		<div class="input_group">
 			<label for="input1"><b>Protein Name:</b></label>
-			<input type="text" id="input1" placeholder="Enter protein name">
+			<input type="text" id="input1" name="input1" placeholder="Enter protein name">
 			<span>e.g. Glucose-6-Phosphatase</span>
 		</div>
         	<div class="input_group">
                 	<label for="input2"><b>Taxonomy Group:</b></label>
-                	<input type="text" id="input2" placeholder="Enter taxonomic group">
+                	<input type="text" id="input2" name="input2" placeholder="Enter taxonomic group">
                 	<span>e.g. Aves</span>
         	</div>
+		<p><b>Tick below to exclude:</b><p>
+		<div class="input_checkbox">
+    			<input type="checkbox" name="options[]" value="isoform">isoform<br>
+    			<input type="checkbox" name="options[]" value="partial">partial<br>
+		</div>
 		<br>
 		<button type="submit" name="button1">Submit</button>
+		<hr>
 	</form>
 <!-- input1 ends -->
 
 <!-- output1 starts -->
 	<?php if ($_SESSION['step'] >= 1): ?>
-		<p>Button 1 was clicked.</p>
 		<br>
+		<?php
+		if (isset($_POST['button1'])){
+                	$protein_name = trim($_POST['input1']);
+                	$taxon_group = trim($_POST['input2']);
+                	$ncbi_token = "abb4f7cff84a4af777891b6f35184e703808";
+			echo "<p><b>Protein Name:</b> $protein_name</p>";
+			echo "<p><b>Taxonomy Group:</b> $taxon_group</p>";
+
+			$ncbi_search = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=protein&term=" . urlencode($protein_name) . "+AND+" . urlencode($taxon_group);
+			//if >1 tick
+			if (!empty($_POST['options'])){
+				$encode_options = array_map('urlencode', $_POST['options']);
+				$filter = implode("+NOT+", $encode_options);
+				$ncbi_search .= "+NOT+" . $filter;
+			}
+			$ncbi_search .= "&retmode=json&api_key=$ncbi_token";
+
+
+			// NCBI SEARCH
+			$o_search = file_get_contents($ncbi_search);
+			echo "$ncbi_search";
+                	if($o_search === false){
+                        	echo "<p>Error. Unable to connect to NCBI API.</p>";
+                        	return;
+                	}
+
+                	$o_data = json_decode($o_search, true);
+                	$o_idlist = $o_data['esearchresult']['idlist'] ?? [];   // if null, assign an empty array
+
+                	if(empty($o_idlist)){
+                        	echo "<p>ERROR. No matching protein found.";
+                        	return;
+                	}
+
+			$id_string = implode(", ", $o_idlist);
+			$id_count = count($o_idlist);
+			echo "<p>Total sequences found: <b>$id_count</b>";
+                	echo "<p>Accession ID: $id_string</p>";
+
+			$fasta_sequence = '';
+			$batches = array_chunk($o_idlist, 10);
+			foreach ($batches as $batch){
+				$ids = implode(',', $batch);  // Convert the batch to a comma-separated string of IDs
+          			$ncbi_fetch = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id=$ids&retmode=text&rettype=fasta&api_key=$ncbi_token";
+
+            			// Fetch the FASTA sequence for the batch
+            			$batch_fasta = file_get_contents($ncbi_fetch);
+				$fasta_sequence .= $batch_fasta;
+			}
+
+			echo "<pre>$fasta_sequence</pre>";
+		}
+
+		?>
+
 		<hr>	<!-- horizontal line-->
 
-		<div class="input_group"><p>
+		<div class="input_group">
                 	<label for="input3"><b>No. of sequences:</b></label>
-                	<input type="number" id="qty" placeholder="100">
-                	<span>Default: 100</span>
-		</p></div>
+                	<input type="number" id="qty" placeholder="20">
+                	<span>Default: 20</span>
+		</div>
 
 		<form method="POST" action="">
 			<button type="submit" name="button2">Button 2</button>
@@ -93,10 +172,13 @@ if (isset($_POST['button3'])){$_SESSION['step'] = 0;}	//reset
                 </form>
         <?php endif; ?>
 
+<!-- output1 ends -->
+
 </body>
 
 
 
 <!-- user can save and come back to the page, cookies, ensure that can't be hacked (JS) -->
+
 
 </html>

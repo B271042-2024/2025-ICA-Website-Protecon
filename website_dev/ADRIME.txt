@@ -1,1 +1,4 @@
 https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_index.html
+
+PHP
+1. can only extract name, not id. e.g. POST['name']
