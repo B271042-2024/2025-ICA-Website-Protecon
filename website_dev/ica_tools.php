@@ -20,11 +20,11 @@ session_start();
 
 	<style>
 		.input_group{
-			width: 80%;
+			width: 100%;
 			display: grid;
 			grid-template-columns: 1fr 1fr 1fr;
 			gap: 10px;
-			align-items: start;
+			align-items: center;
 			margin-bottom: 10px;
 			font: 18px Arial, sans-serif;
 		}
@@ -37,6 +37,15 @@ session_start();
 		}
 		.input_group span{
 			font-style: italic;
+		}
+		.input_checkbox div{		/* among checkboxes */
+			display: flex;
+			gap: 40px;
+		}
+		.input_checkbox label{
+			display: flex;
+			align-items: center;
+			gap: 20px;
 		}
 		button {
 			margin-top: 5px;
@@ -51,16 +60,10 @@ session_start();
 			;
 		}
 		.input_checkbox{
-			width: 40%;
-			display: grid;
-			grid-template-columns: 30px auto;
-			gap: 10px;
-			padding: 8px;
-			align-items: center;
 			font: 18px Arial, sans-serif;
 		}
 		.input_checkbox input[type="checkbox"]{
-			transform: scale(1.5)
+			transform: scale(1.5);
 		}
 
 	</style>
@@ -69,7 +72,10 @@ session_start();
 </head>
 
 <body>
+
+<!-- 1 EXTRACT INFORMATION FROM NCBI PROTEIN BEGINS -->
 <!-- input1 begins -->
+
 	<form method="POST" action="ica_tools.php">
 		<br>
 		<div class="input_group">
@@ -82,10 +88,19 @@ session_start();
                 	<input type="text" id="input2" name="input2" placeholder="Enter taxonomic group">
                 	<span>e.g. Aves</span>
         	</div>
-		<p><b>Tick below to exclude:</b><p>
+		<br>
 		<div class="input_checkbox">
-    			<input type="checkbox" name="options[]" value="isoform">isoform<br>
-    			<input type="checkbox" name="options[]" value="partial">partial<br>
+			<p><b>Tick below to exclude:</b></p>
+			<div class="only_checkbox">
+    				<label><input type="checkbox" name="options[]" value="isoform">isoform</label>
+    				<label><input type="checkbox" name="options[]" value="partial">partial</label>
+			</div>
+		</div>
+		<br>
+		<div class="input_group">
+			<label for "input3"><b>No. of sequences:</b></label>
+			<input type="number" id="input3" name="input3" placeholder="Default: 20" max="300">
+			<span>Leave blank to use default</span>
 		</div>
 		<br>
 		<button type="submit" name="button1">Submit</button>
@@ -98,8 +113,10 @@ session_start();
 		<br>
 		<?php
 		if (isset($_POST['button1'])){
+			// extract input1-3
                 	$protein_name = trim($_POST['input1']);
                 	$taxon_group = trim($_POST['input2']);
+			$num_sequence = isset($_POST['input3']) && !empty($_POST['input3']) ? (int)$_POST['input3'] : 20;	// default: 20
                 	$ncbi_token = "abb4f7cff84a4af777891b6f35184e703808";
 			echo "<p><b>Protein Name:</b> $protein_name</p>";
 			echo "<p><b>Taxonomy Group:</b> $taxon_group</p>";
@@ -111,7 +128,7 @@ session_start();
 				$filter = implode("+NOT+", $encode_options);
 				$ncbi_search .= "+NOT+" . $filter;
 			}
-			$ncbi_search .= "&retmode=json&api_key=$ncbi_token";
+			$ncbi_search .= "&retmax=$num_sequence&retmode=json&api_key=$ncbi_token";
 
 
 			// NCBI SEARCH
@@ -153,17 +170,16 @@ session_start();
 
 		<hr>	<!-- horizontal line-->
 
-		<div class="input_group">
-                	<label for="input3"><b>No. of sequences:</b></label>
-                	<input type="number" id="qty" placeholder="20">
-                	<span>Default: 20</span>
-		</div>
-
 		<form method="POST" action="">
 			<button type="submit" name="button2">Button 2</button>
 		</form>
 	<?php endif; ?>
+<!-- output1 ends -->
 
+<!-- input2 starts -->
+<!-- input2 ends -->
+
+<!-- 1 EXTRACT INFORMATION FROM NCBI PROTEIN ENDS -->
 
         <?php if ($_SESSION['step'] >= 2): ?>
                 <p>Button 2 was clicked.</p>
@@ -171,8 +187,6 @@ session_start();
                         <button type="submit" name="button3">Button 3</button>
                 </form>
         <?php endif; ?>
-
-<!-- output1 ends -->
 
 </body>
 
