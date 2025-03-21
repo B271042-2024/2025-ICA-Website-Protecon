@@ -2,3 +2,9 @@ https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/
 
 PHP
 1. can only extract name, not id. e.g. POST['name']
+2. isset()	# has value or not
+3. $_POST	# to retrieve data submitted e.g. form data
+4. $_SESSION	# to store session for the user across multiple pages or throughout the session, it creates an ID
+	$_SESSION['username'] = 'JohnDoe';
+	echo $_SESSION['username']	# output: JohnDoe
+5. session_id()	# to access session id

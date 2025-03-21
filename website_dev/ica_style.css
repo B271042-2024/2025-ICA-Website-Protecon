@@ -39,8 +39,12 @@ div.header_bar{
 	color: black
 }
 
-p{
+h1{
 	font: 18px Arial, sans-serif;
+}
+
+p{
+	font: 16px Arial, sans-serif;
 }
 
 

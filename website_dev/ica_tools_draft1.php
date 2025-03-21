@@ -95,19 +95,6 @@ echo <<<_HEAD
 			margin-left: 15px;
 		}
 
-		button {
-			padding: 5px 20px;
-			background-color: black;
-			font-weight: bold;
-			color: white;
-			border-radius: 5px;
-			border: none;
-			cursor: pointer;
-		}
-
-		button:hover {
-			background-color: gray;
-		}
 
 	</style>
 </head>
@@ -129,8 +116,6 @@ echo <<<_TOOL1_FASTA
                         		<input type="text" id="input0" name="input0" placeholder="Enter job ID">
                         		<span>e.g. 1234567890abcdef</span>
 				</div>
-                                <br>
-                                        <button type="submit" name="button0">Submit</button>
 			</fieldset>
 
 			<p>OR</p>
@@ -158,83 +143,85 @@ echo <<<_TOOL1_FASTA
 				<br>
 				<div class="input_row">
 					<label for "input3"><b>No. of sequences:</b></label>
-					<input type="number" id="input3" name="input3" placeholder="Default: 20, Max: 200" max="200">
+					<input type="number" id="input3" name="input3" placeholder="Default: 20" max="300">
 					<span>Leave blank to use default</span>
 				</div>
-                		<br>
-                			<button type="submit" name="button1">Submit</button>
 			</fieldset>
 		</div>
+		<br>
+		<button type="submit" name="button1">Submit</button>
+		<hr>
 	</form>
 <!-- input1 ends -->
 _TOOL1_FASTA;
 
 
+        // Tool 1: Extract details from NCBI protein
+	if (!isset($_SESSION['step'])){$_SESSION['step'] = 0;}
+	if (isset($_POST['button1'])){$_SESSION['step'] = 1;}
+	if (isset($_POST['button2'])){$_SESSION['step'] = 2;}   //show button 3 & message
+	if (isset($_POST['button3'])){$_SESSION['step'] = 0;}   //reset
+
 
 // <!-- output1 starts -->
+	if ($_SESSION['step'] >= 1){
+		if (isset($_POST['button1'])){
+			// extract input1-3
+                	$protein_name = trim($_POST['input1']);
+                	$taxon_group = trim($_POST['input2']);
+			$num_sequence = isset($_POST['input3']) && !empty($_POST['input3']) ? (int)$_POST['input3'] : 20;	// default: 20
+                	$ncbi_token = "abb4f7cff84a4af777891b6f35184e703808";
+			echo "<p><b>Protein Name:</b> $protein_name</p>";
+			echo "<p><b>Taxonomy Group:</b> $taxon_group</p>";
 
-	//Tool 0: Extract Job ID from sql
-
-
-
-	// Tool 1: Extract details from NCBI protein
-	//if button
-	if (isset($_POST['button1'])){
-		// extract input1-3
-               	$protein_name = trim($_POST['input1']);
-               	$taxon_group = trim($_POST['input2']);
-		$num_sequence = isset($_POST['input3']) && !empty($_POST['input3']) ? (int)$_POST['input3'] : 20;	// default: 20
-               	$ncbi_token = "abb4f7cff84a4af777891b6f35184e703808";
-		echo "<p><b>Protein Name:</b> $protein_name</p>";
-		echo "<p><b>Taxonomy Group:</b> $taxon_group</p>";
-
-		$ncbi_search = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=protein&term=" . urlencode($protein_name) . "+AND+" . urlencode($taxon_group);
-		//if >1 tick
-		if (!empty($_POST['options'])){
-			$encode_options = array_map('urlencode', $_POST['options']);
-			$filter = implode("+NOT+", $encode_options);
-			$ncbi_search .= "+NOT+" . $filter;
-		}
-		$ncbi_search .= "&retmax=$num_sequence&retmode=json&api_key=$ncbi_token";
+			$ncbi_search = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=protein&term=" . urlencode($protein_name) . "+AND+" . urlencode($taxon_group);
+			//if >1 tick
+			if (!empty($_POST['options'])){
+				$encode_options = array_map('urlencode', $_POST['options']);
+				$filter = implode("+NOT+", $encode_options);
+				$ncbi_search .= "+NOT+" . $filter;
+			}
+			$ncbi_search .= "&retmax=$num_sequence&retmode=json&api_key=$ncbi_token";
 
 
-		// NCBI SEARCH
-		$o_search = file_get_contents($ncbi_search);
-		echo "$ncbi_search";
-               	if($o_search === false){
-                       	echo "<p>Error. Unable to connect to NCBI API.</p>";
-                       	return;
-               	}
+			// NCBI SEARCH
+			$o_search = file_get_contents($ncbi_search);
+			echo "$ncbi_search";
+                	if($o_search === false){
+                        	echo "<p>Error. Unable to connect to NCBI API.</p>";
+                        	return;
+                	}
 
-               	$o_data = json_decode($o_search, true);
-               	$o_idlist = $o_data['esearchresult']['idlist'] ?? [];   // if null, assign an empty array
+                	$o_data = json_decode($o_search, true);
+                	$o_idlist = $o_data['esearchresult']['idlist'] ?? [];   // if null, assign an empty array
 
-               	if(empty($o_idlist)){
-                       	echo "<p>ERROR. No matching protein found.";
-                       	return;
-               	}
+                	if(empty($o_idlist)){
+                        	echo "<p>ERROR. No matching protein found.";
+                        	return;
+                	}
 
-		$id_string = implode(", ", $o_idlist);
-		$id_count = count($o_idlist);
-		echo "<p>Total sequences found: <b>$id_count</b>";
-               	echo "<p>Accession ID: $id_string</p>";
+			$id_string = implode(", ", $o_idlist);
+			$id_count = count($o_idlist);
+			echo "<p>Total sequences found: <b>$id_count</b>";
+                	echo "<p>Accession ID: $id_string</p>";
 
-		$fasta_sequence = '';
-		$batches = array_chunk($o_idlist, 10);
-		foreach ($batches as $batch){
-			$ids = implode(',', $batch);  // Convert the batch to a comma-separated string of IDs
-          		$ncbi_fetch = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id=$ids&retmode=text&rettype=fasta&api_key=$ncbi_token";
+			$fasta_sequence = '';
+			$batches = array_chunk($o_idlist, 10);
+			foreach ($batches as $batch){
+				$ids = implode(',', $batch);  // Convert the batch to a comma-separated string of IDs
+          			$ncbi_fetch = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=protein&id=$ids&retmode=text&rettype=fasta&api_key=$ncbi_token";
 
-            		// Fetch the FASTA sequence for the batch
-          		$batch_fasta = file_get_contents($ncbi_fetch);
-			$fasta_sequence .= $batch_fasta;
-		}
+            			// Fetch the FASTA sequence for the batch
+            			$batch_fasta = file_get_contents($ncbi_fetch);
+				$fasta_sequence .= $batch_fasta;
+			}
 
-		echo "<pre>$fasta_sequence</pre>";
+			echo "<pre>$fasta_sequence</pre>";
 
-		// PDO: create mysql table
+			// PDO: create mysql table
 
 		}
+	}
 
 echo <<<_PROCESS1_FASTA
 		<br>
@@ -245,10 +232,18 @@ echo <<<_PROCESS1_FASTA
 		</form>
 _PROCESS1_FASTA;
 
+//<!-- output1 ends -->
+//<!-- input2 starts -->
+//<!-- input2 ends -->
+//<!-- 1 EXTRACT INFORMATION FROM NCBI PROTEIN ENDS -->
 
-
-
-
+if ($_SESSION['step'] >= 2){
+echo <<<_TRANSITION12
+                <form method="POST" action="">
+                        <button type="submit" name="button3">Button 3</button>
+                </form>
+_TRANSITION12;
+}
 
 echo <<<_TAIL
 </body>
