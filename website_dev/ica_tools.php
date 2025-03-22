@@ -1,7 +1,10 @@
 <?php
+session_start();
 $sessionid = session_id();
 $date = date("d-m-Y");
 
+
+//linux: shell_exec('ls -l');
 
 // setup PDO for mysql
 $hostname = '127.0.0.1';
@@ -12,13 +15,17 @@ $password = '@DriUni11111997';
 $pdo = new PDO("mysql:host=$hostname; dbname=$database; charset=utf8mb4", $username, $password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
+	if (!isset($_SESSION['sequence_data'])){
+		$_SESSION['sequence_data'] = [];
+	}
+
+	$sequence_data = [];
         function displayFastaTable($fasta_sequence){
-		echo '<div class="output_fasta">';
+		echo '<div class="output_fasta" id="table-fasta">';
                	echo "<table>";
                	echo "<tr><th>Tick</th><th>Accession No.</th><th>Sequence Name</th><th>Length</th></tr>";
 
 		$sequences = explode(">", $fasta_sequence);
-		$sequence_data = [];
 
 		foreach ($sequences as $sequence){
         	       if (trim($sequence) !== ""){
@@ -28,54 +35,175 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 				$seq_name = implode(" ", array_slice(explode(" ", $seq_header), 1));
                               	$seq_sequence = isset($seq[1]) ? preg_replace('/\s+/', '', trim($seq[1])) : '';
                               	$seq_length = strlen($seq_sequence);
-				$sequence_data[] = ['acc' => $seq_acc, 'name' => $seq_name, 'length' => $seq_length, 'sequence' => $sequence];
+				$_SESSION['sequence_data'][] = ['acc' => $seq_acc, 'name' => $seq_name, 'length' => $seq_length, 'sequence' => ">$seq_header\n$seq_sequence"];
 
-				echo "<tr><td><input type='checkbox' class='delete-checkbox' data-sequence-id='$seq_acc' name='del[]' value='$seq_acc'></td><td>$seq_acc</td><td>$seq_name</td><td>$seq_length</td></tr>";
+				echo "<tr><td><input type='checkbox' class='delete-checkbox checkie' data-sequence-id='$seq_acc' name='del[]' value='$seq_acc'></td><td>$seq_acc</td><td>$seq_name</td><td>$seq_length</td></tr>";
 
                         }
 		}
                 echo "</table>";
 		echo "</div>";
 		echo "<br>";
-		echo "<div style='text-align: left;'>";
-			echo "<button id='delete-button' onclick='deleteSelectedRows()'>Remove</button>";
+		echo "<form method='POST' action=''>";
+		echo '<div id="button-fasta1" style="text-align: left;">';
+			echo "<button type='button' id='delete-button' onclick='deleteSelectedRows(event)'>Remove</button>";
 		echo "</div>";
 
-		echo "<form method='POST' action='ica_tools.php'>";
-		echo "<div style='text-align: right;'>";
+		echo '<div id="button-fasta2" style="text-align: right;">';
 			echo "<button type='submit' name='button4'>Proceed</button>";
 		echo "</div>";
 		echo "</form>";
 
-
-//	        if(isset($_POST["button4"])){
-//                	echo "<hr>";
-//                	echo "<br>";
-//			foreach ($sequence_data as $seq){
-//				transfertoSQL($seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
-//			}
-//        	}
-
 	} //end fxn
 
-	function transfertoSQL($seq_acc, $seq_name, $seq_length, $sequence){
-		// transfer to database
-		global $sessionid, $pdo;
+	// to match with the visualized data in the table, only transfer data that are not deleted to mysql
+	if (isset($_POST['delete_ids'])){		// receive from JS AJAX as delete_ids
+		$deleted_ids = explode(',', $_POST['delete_ids']);
+		$_SESSION['sequence_data'] = array_filter($_SESSION['sequence_data'], function($seq) use ($deleted_ids) {
+			return !in_array($seq['acc'], $deleted_ids);		// remove rows with the accession no.
+		});
+		$_SESSION['sequence_data'] = array_values($_SESSION['sequence_data']);
+		echo "They are deleted.";
+	}
+
+
+
+        if (isset($_POST['button4'])) {
+                echo "<hr>";
+                echo "Button clicked, data is being transferred to SQL...";
+
+		echo "<pre>";
+		echo print_r($_SESSION['sequence_data']);
+		echo "</pre>";
+
+                // Loop through the sequences and transfer to SQL
+                foreach ($_SESSION['sequence_data'] as $seq) {
+                        transfertoSQL($pdo, $sessionid, $seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
+                }
+                echo "Data is transferred successfully.";
+
+		//build a table
+		echo "<div class='table_tools'>";
+			echo "<table>";
+				echo "<tr><th>Tools</th><th>Description</th><th>Select</th><th>Download</th></tr>";
+				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
+				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
+				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
+				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
+
+			echo "</table>";
+		echo "</div>";
+
+        }
+
+
+	function transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence){
+		echo "start checking";
 		$webtosql = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:session_id, :accession_no, :sequence_name, :length, :fasta_sequence)";
 		$stmt = $pdo->prepare($webtosql);
-    		//$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
-    		//$stmt->bindParam(':accession_no', $seq_acc, PDO::PARAM_STR);
-    		//$stmt->bindParam(':sequence_name', $seq_name, PDO::PARAM_STR);
-		//$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
-		//$stmt->bindParam(':fasta_sequence', $sequence, PDO::PARAM_STR);
+    		$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
+    		$stmt->bindParam(':accession_no', $seq_acc, PDO::PARAM_STR);
+    		$stmt->bindParam(':sequence_name', $seq_name, PDO::PARAM_STR);
+		$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
+		$stmt->bindParam(':fasta_sequence', $fasta_sequence, PDO::PARAM_STR);
 		$stmt-> execute();
 		echo "check mysql now";
 	}
 
-                if(isset($_POST["button4"])){
-			echo "button4 is working!";
+	function fromysql($pdo, $sessionid){
+		$sqltoweb = "select * from temporary_data where session_id = :sessionid";
+		$stmt = $pdo->prepare($sqltoweb);
+		$stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
+		$stmt->execute();
 
-                }
+		$sql_fasta = [];
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+			$sql_fasta[] = $row['fasta_sequence'];
+			echo "Test: function fromysql";
+		}
+		return $sql_fasta;
+	}
+
+	function clustalo($sql_fasta, $sessionid){
+		if (!empty($sql_fasta)){
+			$input_seq = "./tmp/" . $sessionid . "_input_seq.fasta";
+			$fasta_content = implode("\n", $sql_fasta);
+			$createfile = fopen($input_seq, 'w');
+			if($createfile){
+				fwrite($createfile, $fasta_content);
+				fclose($createfile);
+			} else{
+				echo "Error opening the file";
+				return;
+			};
+
+			$output_clustalo = "./tmp/" . $sessionid . "_output_clustalo.aln";
+                        echo "Running protein alignment on ClustalO...";
+			$run_clustalo = shell_exec("clustalo -i $input_seq -o $output_clustalo");
+			echo "ClustalO processing is done...";
+			echo "<pre>$run_clustalo</pre>";
+
+			//display content on the website
+			$output_contents = file_get_contents($output_clustalo);
+                echo "<div id='clustalo-output' class='display_clustalo'>";
+			echo "<pre>" . ($output_contents) . "</pre>";
+		echo "</div>";
+
+		return [$input_seq, $output_clustalo];
+
+		}else{
+			echo "<p>No sequence in the input FASTA file.</p>";
+		}
+	}
+
+	function patmatmotifs($sql_fasta, $sessionid){
+		if (!empty($sql_fasta)){
+
+			//if file not exist, then create
+			$input_seq = "./tmp/" . $sessionid . "_input_seq.fasta";
+			if(!file_exists($input_seq)){
+                        	$fasta_content = implode("\n", $sql_fasta);
+                        	$createfile = fopen($input_seq, 'w');
+                        	if($createfile){
+                                	fwrite($createfile, $fasta_content);
+                                	fclose($createfile);
+                        	} else{
+                                	echo "<p>Error opening the file</p>";
+                                	return;
+                        	};
+			}
+
+			$output_patmatmotifs = "./tmp/" . $sessionid . "_output_patmatmotifs";
+			echo "<p>Running EMBOSS:patmatmotif to search for motif in sequences...</p>";
+			$run_motif = shell_exec("patmatmotifs -full -sequence $input_seq -outfile $output_patmatmotifs");
+			echo "<p>EMBOSS: patmatmotif done...</p>";
+		}
+	}
+
+	function plotcon(){
+
+	}
+
+	function nglviewer(){}
+
+	if (isset($_POST['action']) && $_POST['action'] == 'run_analysis'){
+		$sql_fasta = fromysql($pdo, $sessionid);
+		$tools = json_decode($_POST['tools'], true);
+		$result = '';
+
+		foreach ($tools as $tool){
+			if ($tool === 'ClustalO'){
+				$result .= clustalo($sql_fasta, $sessionid);
+			} elseif ($tool === 'embossPatmatmotifs'){
+				$result .= patmatmotifs($sql_fasta, $sessionid);
+			} elseif ($tool === 'embossPlotcon'){
+				echo "plotcon";
+			} else{
+				echo "nglviewer";
+			}
+		}
+		echo $result;	//send result back to JS
+	}
 
 
 ?>
@@ -176,13 +304,14 @@ echo <<<_HEAD
 		}
 
 		button {
-			padding: 5px 20px;
+			padding: 8px 20px;
 			background-color: black;
 			font-weight: bold;
 			color: white;
 			border-radius: 5px;
 			border: none;
 			cursor: pointer;
+			font-size: 16px;
 		}
 
 		button:hover {
@@ -202,7 +331,7 @@ echo <<<_HEAD
 		}
 
 		table {
-			width: 100%;
+			width: 1000;
 			border-collapse: collapse;
 		}
 
@@ -216,6 +345,27 @@ echo <<<_HEAD
 			color: white;
 		}
 
+		.table_tools {
+                        border: 1px solid white;
+                        padding: 15px;
+                        border-radius: 5px;
+                        display: block;
+                        width: 95%;
+                        text-align: left;
+                        overflow: auto;
+                        font: 16px Arial, sans-serif;
+		}
+
+		.display_clustalo {
+                .output_fasta {
+                        border: 1px solid #3D3D3D;
+                        padding: 15px;
+                        border-radius: 5px;
+                        display: block;
+                        width: 95%;
+                        text-align: left;
+                        overflow: auto;
+		}
 
 	</style>
 </head>
@@ -228,8 +378,8 @@ echo <<<_TOOL1_FASTA
 
 	<form method="POST" action="ica_tools.php">
 		<br>
-		<h1>Get your Sequences</h1>
-		<div class="methods">
+		<div class="methods" id="content-main">
+		<h1><b>Get your Sequences</b></h1>
 			<fieldset>
 				<legend>Method 1: Use your saved Job ID</legend>
                         	<div class="input_row">
@@ -289,6 +439,7 @@ _TOOL1_FASTA;
 	// Tool 1: Extract details from NCBI protein
 	//if button
 	if (isset($_POST['button1'])){
+		echo "<div id=output-seqdetails>";
 		// extract input1-3
                	$protein_name = trim($_POST['input1']);
                	$taxon_group = trim($_POST['input2']);
@@ -339,8 +490,9 @@ _TOOL1_FASTA;
 			$fasta_sequence .= $batch_fasta;
 
 		}
-		// build fasta table
+		echo "</div>";
 		displayFastaTable($fasta_sequence);
+
 	}
 
 echo <<<_TAIL

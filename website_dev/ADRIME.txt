@@ -8,3 +8,43 @@ PHP
 	$_SESSION['username'] = 'JohnDoe';
 	echo $_SESSION['username']	# output: JohnDoe
 5. session_id()	# to access session id
+
+
+
+--- tools
+<?php
+// Check if the 'action' parameter is set and equals 'run_analysis'
+if (isset($_POST['action']) && $_POST['action'] == 'run_analysis') {
+    // Decode the JSON-encoded 'tools' parameter
+    $selectedTools = json_decode($_POST['tools'], true);
+
+    // Loop through selected tools and run the corresponding analysis
+    foreach ($selectedTools as $tool) {
+        switch ($tool) {
+            case 'ClustalO':
+                // Run ClustalO analysis
+                $output = shell_exec('clustalo --input=input.fasta --output=output.aln');
+                echo "ClustalO Analysis Complete: " . $output;
+                break;
+            case 'EMBOSS: patmatmotifs':
+                // Run EMBOSS: patmatmotifs analysis
+                $output = shell_exec('emboss patmatmotifs -sequence input.fasta -outseq motifs.txt');
+                echo "EMBOSS: patmatmotifs Analysis Complete: " . $output;
+                break;
+            case 'EMBOSS: plotcon':
+                // Run EMBOSS: plotcon analysis
+                $output = shell_exec('emboss plotcon -sequence input.fasta -outfile plotcon_output.txt');
+                echo "EMBOSS: plotcon Analysis Complete: " . $output;
+                break;
+            case 'NGL Viewer':
+                // Run NGL Viewer (perhaps a visualization or view link)
+                echo "NGL Viewer Analysis Complete.";
+                break;
+            default:
+                echo "Unknown tool: " . $tool;
+                break;
+        }
+    }
+}
+?>
+

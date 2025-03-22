@@ -47,6 +47,32 @@ p{
 	font: 16px Arial, sans-serif;
 }
 
+/* from ica_script.js */
+.JS-Tool-table{
+	width: 1000px;
+	border-collapse: collapse;
+	font: 16px Arial, sans-serif;
+	border: 1px solid #3D3D3D;
+}
+
+.JS-Tool-table th, .styled-table td{
+	padding: 10px;
+	text-align: center;
+}
+
+.checkie{
+	transform: scale(2); /* Enlarge checkbox */
+	display: flex;	/* horizontally */
+	justify-content: center;	/* center horizontally */
+	align-items: center;	/* center vertically */
+	cursor: pointer;
+}
+
+.checkie hover{
+	transform: scale(2.2);
+}
+
+
 
 /* .class = for class (many elements under 1 class) */
 /* #id = for each element */
