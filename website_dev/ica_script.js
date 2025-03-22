@@ -1,19 +1,25 @@
 
+//console.log('Hi, I am before')
 
-//src: ica_tools.html
+function deleteSelectedRows(){
 
-function fetchProtein(){
-	var protein = document.getElementById('input1').value.trim();
-	var taxon = document.getElementById('input2').value.trim();
-	var div_output1 = document.querySelector('.output1');
+//	console.log('JS i am');
+	var checkboxes = document.querySelectorAll('.delete-checkbox:checked');
+        checkboxes.forEach(function(checkbox) {
+        	var row = checkbox.closest('tr');  // Get the row that contains the checkbox
+        	row.remove();  // Remove the row from the table
+        });
 
-	if (protein === "" || taxon === ""){
-		div_output1.style.display = "none";
-		alert("Failed. Please enter both Protein Name and Taxonomic Group.");
-		return;
-	}
-	else{
-		document.getElementById("web_output1").innerHTML = `<b>Protein:</b> ${protein} <br> <b>Taxonomic Group:</b> ${taxon}`;
-		div_output1.style.display = "block";
-	}
+        var deletedIds = Array.from(checkboxes).map(function(checkbox) {
+        	return checkbox.getAttribute('data-sequence-id');
+        });
+
+        if (deletedIds.length > 0) {
+        	// Send the deleted IDs to PHP via AJAX for server-side deletion
+        	var xhr = new XMLHttpRequest();
+		var pg_tools = 'https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php'
+        	xhr.open('POST', pg_tools, true);
+        	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        	xhr.send('delete_ids=' + encodeURIComponent(deletedIds.join(',')));
+        }
 }

@@ -1,5 +1,8 @@
 <?php
 session_start();
+$sessionid = session_id();
+$date = date("d-m-Y");
+
 
 // setup PDO for mysql
 $hostname = '127.0.0.1';
@@ -38,9 +41,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	// get error
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>PROTE-Con</title>
 	<link rel="stylesheet" href="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_style.css">
-	<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>
 </head>
 <body>
+	<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>
 	<iframe src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_header.html" width="100%" height="100px" style="border:none;"></iframe>
 	<iframe id="contentFrame" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php" width="100%" height="800px" style="border:none;"></iframe>
 </body>

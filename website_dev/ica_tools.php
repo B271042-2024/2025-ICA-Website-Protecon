@@ -1,5 +1,86 @@
 <?php
-//session_start();
+$sessionid = session_id();
+$date = date("d-m-Y");
+
+
+// setup PDO for mysql
+$hostname = '127.0.0.1';
+$database = 's2704130_IWD_ICA';
+$username = 's2704130';
+$password = '@DriUni11111997';
+
+$pdo = new PDO("mysql:host=$hostname; dbname=$database; charset=utf8mb4", $username, $password);
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
+
+        function displayFastaTable($fasta_sequence){
+		echo '<div class="output_fasta">';
+               	echo "<table>";
+               	echo "<tr><th>Tick</th><th>Accession No.</th><th>Sequence Name</th><th>Length</th></tr>";
+
+		$sequences = explode(">", $fasta_sequence);
+		$sequence_data = [];
+
+		foreach ($sequences as $sequence){
+        	       if (trim($sequence) !== ""){
+                 	      	$seq = explode("\n", trim($sequence), 2);
+                              	$seq_header = htmlspecialchars($seq[0]);
+				$seq_acc = explode(" ", $seq_header)[0];
+				$seq_name = implode(" ", array_slice(explode(" ", $seq_header), 1));
+                              	$seq_sequence = isset($seq[1]) ? preg_replace('/\s+/', '', trim($seq[1])) : '';
+                              	$seq_length = strlen($seq_sequence);
+				$sequence_data[] = ['acc' => $seq_acc, 'name' => $seq_name, 'length' => $seq_length, 'sequence' => $sequence];
+
+				echo "<tr><td><input type='checkbox' class='delete-checkbox' data-sequence-id='$seq_acc' name='del[]' value='$seq_acc'></td><td>$seq_acc</td><td>$seq_name</td><td>$seq_length</td></tr>";
+
+                        }
+		}
+                echo "</table>";
+		echo "</div>";
+		echo "<br>";
+		echo "<div style='text-align: left;'>";
+			echo "<button id='delete-button' onclick='deleteSelectedRows()'>Remove</button>";
+		echo "</div>";
+
+		echo "<form method='POST' action='ica_tools.php'>";
+		echo "<div style='text-align: right;'>";
+			echo "<button type='submit' name='button4'>Proceed</button>";
+		echo "</div>";
+		echo "</form>";
+
+
+//	        if(isset($_POST["button4"])){
+//                	echo "<hr>";
+//                	echo "<br>";
+//			foreach ($sequence_data as $seq){
+//				transfertoSQL($seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
+//			}
+//        	}
+
+	} //end fxn
+
+	function transfertoSQL($seq_acc, $seq_name, $seq_length, $sequence){
+		// transfer to database
+		global $sessionid, $pdo;
+		$webtosql = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:session_id, :accession_no, :sequence_name, :length, :fasta_sequence)";
+		$stmt = $pdo->prepare($webtosql);
+    		//$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
+    		//$stmt->bindParam(':accession_no', $seq_acc, PDO::PARAM_STR);
+    		//$stmt->bindParam(':sequence_name', $seq_name, PDO::PARAM_STR);
+		//$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
+		//$stmt->bindParam(':fasta_sequence', $sequence, PDO::PARAM_STR);
+		$stmt-> execute();
+		echo "check mysql now";
+	}
+
+                if(isset($_POST["button4"])){
+			echo "button4 is working!";
+
+                }
+
+
+?>
+
+<?php
 
 echo <<<_HEAD
 <html lang="en">
@@ -8,7 +89,6 @@ echo <<<_HEAD
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>PROTE-Con</title>
         <link rel="stylesheet" href="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_style.css">
-	<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>
 
 	<style>
 
@@ -50,7 +130,7 @@ echo <<<_HEAD
 
 		/* Aligning Method 1 and Method 2 with spacing */
 		fieldset {
-    			border: 1px solid #ccc;
+    			border: 1px solid #D3D3D3;
     			padding: 15px;
     			border-radius: 5px;
     			display: block;
@@ -109,6 +189,34 @@ echo <<<_HEAD
 			background-color: gray;
 		}
 
+		.output_fasta {
+			border: 1px solid white;
+			padding: 15px;
+			border-radius: 5px;
+			display: block;
+			width: 95%;
+			height: 300px;
+			text-align: left;
+			overflow: auto;
+			font: 16px Arial, sans-serif;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+		table th, table td {
+			padding: 10px;
+			border: 1px solid #D3D3D3;
+		}
+
+		table th {
+			background-color: black;
+			color: white;
+		}
+
+
 	</style>
 </head>
 <body>
@@ -157,14 +265,15 @@ echo <<<_TOOL1_FASTA
 				</div>
 				<br>
 				<div class="input_row">
-					<label for "input3"><b>No. of sequences:</b></label>
+					<label for="input3"><b>No. of sequences:</b></label>
 					<input type="number" id="input3" name="input3" placeholder="Default: 20, Max: 200" max="200">
 					<span>Leave blank to use default</span>
 				</div>
-                		<br>
-                			<button type="submit" name="button1">Submit</button>
+				<br>
+					<button type="submit" name="button1">Submit</button>
 			</fieldset>
 		</div>
+		<br>
 	</form>
 <!-- input1 ends -->
 _TOOL1_FASTA;
@@ -200,7 +309,7 @@ _TOOL1_FASTA;
 
 		// NCBI SEARCH
 		$o_search = file_get_contents($ncbi_search);
-		echo "$ncbi_search";
+//		echo "$ncbi_search";
                	if($o_search === false){
                        	echo "<p>Error. Unable to connect to NCBI API.</p>";
                        	return;
@@ -217,7 +326,7 @@ _TOOL1_FASTA;
 		$id_string = implode(", ", $o_idlist);
 		$id_count = count($o_idlist);
 		echo "<p>Total sequences found: <b>$id_count</b>";
-               	echo "<p>Accession ID: $id_string</p>";
+//               	echo "<p>Accession ID: $id_string</p>";
 
 		$fasta_sequence = '';
 		$batches = array_chunk($o_idlist, 10);
@@ -228,34 +337,18 @@ _TOOL1_FASTA;
             		// Fetch the FASTA sequence for the batch
           		$batch_fasta = file_get_contents($ncbi_fetch);
 			$fasta_sequence .= $batch_fasta;
-		}
-
-		echo "<pre>$fasta_sequence</pre>";
-
-		// PDO: create mysql table
 
 		}
-
-echo <<<_PROCESS1_FASTA
-		<br>
-		<hr>	<!-- horizontal line-->
-
-		<form method="POST" action="">
-			<button type="submit" name="button2">Button 2</button>
-		</form>
-_PROCESS1_FASTA;
-
-
-
-
-
+		// build fasta table
+		displayFastaTable($fasta_sequence);
+	}
 
 echo <<<_TAIL
+
+	<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>
 </body>
 <!-- user can save and come back to the page, cookies, ensure that can't be hacked (JS) -->
 </html>
 _TAIL;
 
 ?>
-
-// user can save and come back to the page, cookies, ensure that can't be hacked (JS)
