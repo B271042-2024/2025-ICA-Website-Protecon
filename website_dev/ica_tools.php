@@ -77,13 +77,19 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
  		echo "<div class='table_tools'>";
 			echo "<table>";
 				echo "<tr><th>Tools</th><th>Description</th><th>Select</th><th>Download</th></tr>";
-				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
-				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
-				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
-				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
+				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td><td>''</td></tr>";
+				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td><td>''</td></tr>";
+				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td><td>''</td></tr>";
+				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td><td>''</td></tr>";
 			echo "</table>";
 		echo "</div>";
+		echo "<form method='POST' action=''>";
+			echo '<div id="button-run" style="text-align: right;">';
+				echo "<button type='button' id='button5' onclick='runAnalysis(event)'>Run</button>";
+			echo "</div>";
+		echo "</form>";
 		exit;	// stop page from showing content-main
+
         }
 
 	function transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence){
@@ -104,6 +110,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			error_log("Error transferring data to MYSQL: " . $e->getMessage());
 		}
 	}
+
 
 	function fromysql($pdo, $sessionid){
 
@@ -187,7 +194,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	function nglviewer(){}
 
-	if (isset($_POST['action']) && $_POST['action'] == 'run_analysis'){
+	//if (isset($_POST['action']) && $_POST['action'] == 'button_run'){
+	if (isset($_POST['button_run'])){
+		echo "running button_run php";
 		$sql_fasta = fromysql($pdo, $sessionid);
 		$tools = json_decode($_POST['tools'], true);
 		$result = '';
@@ -195,15 +204,16 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		foreach ($tools as $tool){
 			if ($tool === 'ClustalO'){
 				$result .= clustalo($sql_fasta, $sessionid);
-			} elseif ($tool === 'embossPatmatmotifs'){
+			} elseif ($tool === 'patmatmotifs'){
 				$result .= patmatmotifs($sql_fasta, $sessionid);
-			} elseif ($tool === 'embossPlotcon'){
+			} elseif ($tool === 'plotcon'){
 				echo "plotcon";
 			} else{
-				echo "nglviewer";
+				echo "ngl";
 			}
 		}
 		echo $result;	//send result back to JS
+		exit;
 	}
 
 
