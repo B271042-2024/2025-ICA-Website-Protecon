@@ -1,55 +1,47 @@
-
-//console.log('Hi, I am before')
-
 function deleteSelectedRows(){
-	event.preventDefault();
-//	console.log('JS i am');
-	var checkboxes = document.querySelectorAll('.delete-checkbox:checked');
+	event.preventDefault();		// prevent page from reloading
+	var checkboxes = document.querySelectorAll('.delete-checkbox:checked');		//select all checkboxes w class delete-checkbox
         checkboxes.forEach(function(checkbox) {
-        	var row = checkbox.closest('tr');  // Get the row that contains the checkbox
-        	row.remove();  // Remove the row from the table
+        	var row = checkbox.closest('tr');  // get row w checkbox
+        	row.remove();  // Remove
         });
 
         var deletedIds = Array.from(checkboxes).map(function(checkbox) {
-        	return checkbox.getAttribute('data-sequence-id');
+        	return checkbox.getAttribute('data-sequence-id');	// get unique id for the row
         });
 
-        if (deletedIds.length > 0) {
-        	// Send the deleted IDs to PHP via AJAX for server-side deletion
+        if (deletedIds.length > 0) {	// send the deleted id to php via AJAX
         	var xhr = new XMLHttpRequest();
-		var pg_tools = 'https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php'
-        	xhr.open('POST', pg_tools, true);
+		var ica_tools = 'https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php'
+        	xhr.open('POST', ica_tools, true);
         	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         	xhr.send('delete_ids=' + encodeURIComponent(deletedIds.join(',')));
         }
 }
 
+function proceedTool(event){
+	event.preventDefault();
+	document.getElementById('content-main').remove();
+	var xhr = new XMLHttpRequest();		// create AJAX request
+	var ica_tools = 'https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php'
+	xhr.open('POST', ica_tools, true);	//open POST request to the url, true = makes  request asynchronous (xblock execution)
+	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');	// send data as URL-encoded like form submissino
+	xhr.send('button_proceed=1');	// send request (key-value pairs)
+	xhr.onload = function() {
+		if (xhr.status === 200){
+			if (!xhr.responseText.includes('id="content-main"')){
+				document.getElementById('button-fasta2').innerHTML = xhr.responseText;
+				console.log("Successful function: proceedTool()");
+			} else{
+				console.warn('Skipping reponse since it containst content-main')
+			}
+		} else{
+			console.error("Error: ", xhr.status);
+		}
+	}
+}
 
-// reload the page, clear up the window and insert new items
-document.addEventListener('DOMContentLoaded', function(){
-	document.querySelector('button[name="button4"]').addEventListener('click', function(event){
-        	event.preventDefault()
-        	document.getElementById('content-main').innerHTML = '';
-		document.getElementById('output-seqdetails').innerHTML = '';
-		document.getElementById('table-fasta').innerHTML = '';
-		document.getElementById('button-fasta1').innerHTML = '';
-		document.getElementById('button-fasta2').innerHTML = '';
 
-		const newContent = `
-			<p style='font: 18px Arial, sans-serif;'><b>Select from the following:</b></p>
-			<table class="JS-Tool-table">
-                                <tr><th>Tools</th><th>Description</th><th>Select</th><th>Download</th></tr>
-                                <tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools checkie' name='selecttools[]' value='ClustalO'></td><td></td></tr>
-                               	<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools checkie' name='selecttools[]' value='embossPatmatmotifs'></td><td></td></tr>
-                                <tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools checkie' name='selecttools[]' value='embossPlotcon'></td><td></td></tr>
-                                <tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools checkie' name='selecttools[]' value='nglviewer'></td><td></td></tr>
-            		</table>
-			<br>
-			<button class ='JS-Tool-button' type='button' id='button-run' onclick='runAnalysis()'>Run</button>
-		`;
-		document.body.innerHTML = newContent;
-	})
-})
 
 
 //AJAX send back to ica_tools.php

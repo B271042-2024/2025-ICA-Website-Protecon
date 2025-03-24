@@ -3,9 +3,6 @@ session_start();
 $sessionid = session_id();
 $date = date("d-m-Y");
 
-
-//linux: shell_exec('ls -l');
-
 // setup PDO for mysql
 $hostname = '127.0.0.1';
 $database = 's2704130_IWD_ICA';
@@ -19,7 +16,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		$_SESSION['sequence_data'] = [];
 	}
 
-	$sequence_data = [];
         function displayFastaTable($fasta_sequence){
 		echo '<div class="output_fasta" id="table-fasta">';
                	echo "<table>";
@@ -50,7 +46,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		echo "</div>";
 
 		echo '<div id="button-fasta2" style="text-align: right;">';
-			echo "<button type='submit' name='button4'>Proceed</button>";
+			echo "<button type='submit' id='button4' onclick=proceedTool(event)>Proceed</button>";
 		echo "</div>";
 		echo "</form>";
 
@@ -67,61 +63,66 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 	}
 
 
-
-        if (isset($_POST['button4'])) {
+	if (isset($_POST['button_proceed'])){
                 echo "<hr>";
                 echo "Button clicked, data is being transferred to SQL...";
-
 		echo "<pre>";
 		echo print_r($_SESSION['sequence_data']);
 		echo "</pre>";
-
-                // Loop through the sequences and transfer to SQL
                 foreach ($_SESSION['sequence_data'] as $seq) {
                         transfertoSQL($pdo, $sessionid, $seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
                 }
                 echo "Data is transferred successfully.";
-
 		//build a table
-		echo "<div class='table_tools'>";
+ 		echo "<div class='table_tools'>";
 			echo "<table>";
 				echo "<tr><th>Tools</th><th>Description</th><th>Select</th><th>Download</th></tr>";
 				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
 				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
 				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
 				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]'></td><td>''</td></tr>";
-
 			echo "</table>";
 		echo "</div>";
-
+		exit;	// stop page from showing content-main
         }
 
-
 	function transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence){
-		echo "start checking";
-		$webtosql = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:session_id, :accession_no, :sequence_name, :length, :fasta_sequence)";
-		$stmt = $pdo->prepare($webtosql);
-    		$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
-    		$stmt->bindParam(':accession_no', $seq_acc, PDO::PARAM_STR);
-    		$stmt->bindParam(':sequence_name', $seq_name, PDO::PARAM_STR);
-		$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
-		$stmt->bindParam(':fasta_sequence', $fasta_sequence, PDO::PARAM_STR);
-		$stmt-> execute();
-		echo "check mysql now";
+		try{
+			echo "start checking";
+			$webtosql = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:session_id, :accession_no, :sequence_name, :length, :fasta_sequence)";
+			$stmt = $pdo->prepare($webtosql);
+    			$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
+    			$stmt->bindParam(':accession_no', $seq_acc, PDO::PARAM_STR);
+	    		$stmt->bindParam(':sequence_name', $seq_name, PDO::PARAM_STR);
+			$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
+			$stmt->bindParam(':fasta_sequence', $fasta_sequence, PDO::PARAM_STR);
+			$stmt-> execute();
+			echo "check mysql now";
+
+			error_log("Data successfully transferred to MYSQL");
+		} catch (PDOException $e){
+			error_log("Error transferring data to MYSQL: " . $e->getMessage());
+		}
 	}
 
 	function fromysql($pdo, $sessionid){
-		$sqltoweb = "select * from temporary_data where session_id = :sessionid";
-		$stmt = $pdo->prepare($sqltoweb);
-		$stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
-		$stmt->execute();
 
-		$sql_fasta = [];
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-			$sql_fasta[] = $row['fasta_sequence'];
-			echo "Test: function fromysql";
+		try{
+			$sqltoweb = "select * from temporary_data where session_id = :sessionid";
+			$stmt = $pdo->prepare($sqltoweb);
+			$stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
+			$stmt->execute();
+
+			$sql_fasta = [];
+			while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+				$sql_fasta[] = $row['fasta_sequence'];
+			}
+			error_log("FASTA sequences: " . json_encode($sql_fasta));
+			return $sql_fasta;
+		} catch (PDOException $e){
+			error_log("Error fetching from MYSQL: " . $e->getMessage());
+			return [];
 		}
-		return $sql_fasta;
 	}
 
 	function clustalo($sql_fasta, $sessionid){
@@ -145,11 +146,11 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 			//display content on the website
 			$output_contents = file_get_contents($output_clustalo);
-                echo "<div id='clustalo-output' class='display_clustalo'>";
+                	echo "<div id='clustalo-output' class='display_clustalo'>";
 			echo "<pre>" . ($output_contents) . "</pre>";
-		echo "</div>";
+			echo "</div>";
 
-		return [$input_seq, $output_clustalo];
+			return [$input_seq, $output_clustalo];
 
 		}else{
 			echo "<p>No sequence in the input FASTA file.</p>";
@@ -211,6 +212,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 <?php
 
 echo <<<_HEAD
+<!DOCTYPE html>
 <html lang="en">
 <head>
         <meta charset="UTF-8">
