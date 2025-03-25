@@ -109,6 +109,36 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 	}
 
 
+        function fromysql_todelete($pdo, $sessionid){
+
+		try{
+//			$sqltoweb = "select * from temporary_data where session_id = :sessionid";
+//			$stmt = $pdo->prepare($sqltoweb);
+//			$stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
+//			$stmt->execute();
+
+//			$sql_sessionid = [];
+//			while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
+//				$sql_sessionid[] = $row['session_id'];
+//			}
+//			error_log("Session ID: " . json_encode($sql_sessionid));
+
+//			if (count($sql_sessionid) > 0){
+				$delete_sql = "DELETE FROM temporary_data WHERE session_id = :sessionid";
+				$delete_stmt = $pdo->prepare($delete_sql);
+				$delete_stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
+				$delete_stmt->execute();
+				error_log("Rows deleted where session_id = " . $sessionid);
+			//}
+			return true;
+		} catch (PDOException $e){
+			error_log("Error deleting from MYSQL: ". $e->getMessage());
+			return false;
+		}
+	}
+
+
+
 	function fromysql($pdo, $sessionid){
 
 		try{
@@ -128,6 +158,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			return [];
 		}
 	}
+
+
 
 	function clustalo($sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
@@ -195,10 +227,10 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			}
                         $output_plotcon = "./tmp/" . $sessionid . "_plotcon";
                         echo "Running EMBOSS: plotcon for protein conservation plot...";
-                        $run_plotcon1_png = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph png");
-				rename( "./tmp/" . "plotcon.1.png", "{$output_plotcon}.png");
-			$run_plotcon1_csv = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph data");
-				rename( "./tmp/" . "plotcon1.dat", "{$output_plotcon}.csv");
+                        $run_plotcon1_png = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph png > {$output_plotcon}.png");
+//				rename( "./tmp/" . "plotcon.1.png", "{$output_plotcon}.png");
+			$run_plotcon1_csv = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph data > {$output_plotcon}.csv");
+//				rename( "./tmp/" . "plotcon1.dat", "{$output_plotcon}.csv");
                         echo "plotcon processing is done...";
                         echo "<pre>$run_plotcon1_png</pre>";
 			echo "<pre>$run_plotcon1_csv</pre>";
@@ -241,6 +273,10 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 		echo $result;	//send result back to JS
 		exit;
+	}
+
+	function(){
+		//delete the tmp table each time new query is sent
 	}
 
 
@@ -370,7 +406,7 @@ echo <<<_HEAD
 		}
 
 		table {
-			width: 1000;
+			width: 1100px;
 			border-collapse: collapse;
 		}
 
@@ -478,6 +514,10 @@ _TOOL1_FASTA;
 	// Tool 1: Extract details from NCBI protein
 	//if button
 	if (isset($_POST['button1'])){
+
+		//delete data from mysql each time user key in new entry at each session. It will only be saved once the user click save.
+		fromysql_todelete($pdo, $sessionid);
+
 		echo "<div id=output-seqdetails>";
 		// extract input1-3
                	$protein_name = trim($_POST['input1']);

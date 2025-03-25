@@ -61,16 +61,16 @@ p{
 	text-align: center;
 }
 
-.select-tools{
-	transform: scale(2); /* Enlarge checkbox */
+.select-tools, .checkie{
+	transform: scale(1.8); /* Enlarge checkbox */
 	display: flex;	/* horizontally */
 	justify-content: center;	/* center horizontally */
 	align-items: center;	/* center vertically */
 	cursor: pointer;
 }
 
-.select-tools hover{
-	transform: scale(2.2);
+.select-tools:hover, .checkie:hover{
+	transform: scale(2);
 }
 
 

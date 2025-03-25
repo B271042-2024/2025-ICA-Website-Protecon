@@ -1,6 +1,6 @@
 ########################################
 # Program: patmatmotifs
-# Rundate: Tue 25 Mar 2025 05:35:45
+# Rundate: Tue 25 Mar 2025 05:59:42
 # Commandline: patmatmotifs
 #    -full
 #    -sequence ./tmp/196de30671bac03f5e44259c54ef8404_seq.fasta
