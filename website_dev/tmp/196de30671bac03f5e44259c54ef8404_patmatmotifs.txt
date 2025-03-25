@@ -1,0 +1,25 @@
+########################################
+# Program: patmatmotifs
+# Rundate: Tue 25 Mar 2025 05:35:45
+# Commandline: patmatmotifs
+#    -full
+#    -sequence ./tmp/196de30671bac03f5e44259c54ef8404_seq.fasta
+#    -outfile ./tmp/196de30671bac03f5e44259c54ef8404_patmatmotifs.txt
+# Report_format: dbmotif
+# Report_file: ./tmp/196de30671bac03f5e44259c54ef8404_patmatmotifs.txt
+########################################
+
+#=======================================
+#
+# Sequence: XP_072212784.1     from: 1   to: 358
+# HitCount: 0
+#
+# Full: Yes
+# Prune: Yes
+# Data_file: /usr/share/EMBOSS/data/PROSITE/prosite.lines
+#
+#=======================================
+
+
+#---------------------------------------
+#---------------------------------------

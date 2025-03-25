@@ -65,22 +65,22 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	if (isset($_POST['button_proceed'])){
                 echo "<hr>";
-                echo "Button clicked, data is being transferred to SQL...";
-		echo "<pre>";
-		echo print_r($_SESSION['sequence_data']);
-		echo "</pre>";
+                //echo "Button clicked, data is being transferred to SQL...";
+		//echo "<pre>";
+		//echo print_r($_SESSION['sequence_data']);
+		//echo "</pre>";
                 foreach ($_SESSION['sequence_data'] as $seq) {
                         transfertoSQL($pdo, $sessionid, $seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
                 }
-                echo "Data is transferred successfully.";
+                //echo "Data is transferred successfully.";
 		//build a table
  		echo "<div class='table_tools'>";
 			echo "<table>";
 				echo "<tr><th>Tools</th><th>Description</th><th>Select</th><th>Download</th></tr>";
-				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td><td>''</td></tr>";
-				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td><td>''</td></tr>";
-				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td><td>''</td></tr>";
-				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td><td>''</td></tr>";
+				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td><td></td></tr>";
+				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td><td></td></tr>";
+				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td><td></td></tr>";
+				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td><td></td></tr>";
 			echo "</table>";
 		echo "</div>";
 		echo "<form method='POST' action=''>";
@@ -94,7 +94,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	function transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence){
 		try{
-			echo "start checking";
 			$webtosql = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:session_id, :accession_no, :sequence_name, :length, :fasta_sequence)";
 			$stmt = $pdo->prepare($webtosql);
     			$stmt->bindParam(':session_id', $sessionid, PDO::PARAM_STR);
@@ -103,8 +102,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			$stmt->bindParam(':length', $seq_length, PDO::PARAM_INT);
 			$stmt->bindParam(':fasta_sequence', $fasta_sequence, PDO::PARAM_STR);
 			$stmt-> execute();
-			echo "check mysql now";
-
 			error_log("Data successfully transferred to MYSQL");
 		} catch (PDOException $e){
 			error_log("Error transferring data to MYSQL: " . $e->getMessage());
@@ -134,7 +131,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	function clustalo($sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
-			$input_seq = "./tmp/" . $sessionid . "_input_seq.fasta";
+			$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
 			$fasta_content = implode("\n", $sql_fasta);
 			$createfile = fopen($input_seq, 'w');
 			if($createfile){
@@ -145,7 +142,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 				return;
 			};
 
-			$output_clustalo = "./tmp/" . $sessionid . "_output_clustalo.aln";
+			$output_clustalo = "./tmp/" . $sessionid . "_clustalo.aln";
                         echo "Running protein alignment on ClustalO...";
 			$run_clustalo = shell_exec("clustalo -i $input_seq -o $output_clustalo");
 			echo "ClustalO processing is done...";
@@ -166,9 +163,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	function patmatmotifs($sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
-
 			//if file not exist, then create
-			$input_seq = "./tmp/" . $sessionid . "_input_seq.fasta";
+			$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
 			if(!file_exists($input_seq)){
                         	$fasta_content = implode("\n", $sql_fasta);
                         	$createfile = fopen($input_seq, 'w');
@@ -181,16 +177,40 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
                         	};
 			}
 
-			$output_patmatmotifs = "./tmp/" . $sessionid . "_output_patmatmotifs";
+			$output_patmatmotifs = "./tmp/" . $sessionid . "_patmatmotifs.txt";
 			echo "<p>Running EMBOSS:patmatmotif to search for motif in sequences...</p>";
 			$run_motif = shell_exec("patmatmotifs -full -sequence $input_seq -outfile $output_patmatmotifs");
 			echo "<p>EMBOSS: patmatmotif done...</p>";
+			echo "<pre>$run_motif</pre>";
+			$output_contents = file_get_contents($output_patmatmotifs);
+			echo "<pre>" . ($output_contents) . "</pre>";
 		}
 	}
 
-	function plotcon(){
+	function plotcon($sql_fasta, $sessionid){
+                if (!empty($sql_fasta)){
+			$output_clustalo = "./tmp/" . $sessionid . "_clustalo.fasta";
+			if(!file_exists($output_clustalo)){
+				clustalo($sql_fasta, $sessionid);
+			}
+                        $output_plotcon = "./tmp/" . $sessionid . "_plotcon";
+                        echo "Running EMBOSS: plotcon for protein conservation plot...";
+                        $run_plotcon1_png = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph png");
+				rename( "./tmp/" . "plotcon.1.png", "{$output_plotcon}.png");
+			$run_plotcon1_csv = shell_exec("plotcon -sequences $output_clustalo -winsize 4 -graph data");
+				rename( "./tmp/" . "plotcon1.dat", "{$output_plotcon}.csv");
+                        echo "plotcon processing is done...";
+                        echo "<pre>$run_plotcon1_png</pre>";
+			echo "<pre>$run_plotcon1_csv</pre>";
 
-	}
+                        //display content on the website
+			echo "<img src='{$output_plotcon}.png' alt='Protein Conservation Plot'>";
+			echo "<pre>" . file_get_contents("{$output_plotcon}.csv") . "</pre>";
+                }else{
+                        echo "<p>No sequence in the input FASTA file.</p>";
+                }
+        }
+
 
 	function nglviewer(){}
 
@@ -203,15 +223,22 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 		foreach ($tools as $tool){
 			if ($tool === 'ClustalO'){
-				$result .= clustalo($sql_fasta, $sessionid);
+				$output = clustalo($sql_fasta, $sessionid);
 			} elseif ($tool === 'patmatmotifs'){
-				$result .= patmatmotifs($sql_fasta, $sessionid);
+				$output = patmatmotifs($sql_fasta, $sessionid);
 			} elseif ($tool === 'plotcon'){
-				echo "plotcon";
+				$output = plotcon($sql_fasta, $sessionid);
 			} else{
 				echo "ngl";
 			}
+
+			if (is_array($output)){
+				$output = implode("\n", $output);
+			}
+
+			$result .= $output;
 		}
+
 		echo $result;	//send result back to JS
 		exit;
 	}
