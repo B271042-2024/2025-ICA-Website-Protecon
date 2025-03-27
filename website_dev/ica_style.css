@@ -45,6 +45,11 @@ h1{
 
 p{
 	font: 16px Arial, sans-serif;
+	text-align: left;
+}
+
+pre{
+	text-align: left;
 }
 
 /* from ica_script.js */
@@ -72,8 +77,6 @@ p{
 .select-tools:hover, .checkie:hover{
 	transform: scale(2);
 }
-
-
 
 /* .class = for class (many elements under 1 class) */
 /* #id = for each element */

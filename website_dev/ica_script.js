@@ -66,29 +66,24 @@ function runAnalysis(event){
 }
 
 
-
-/*
-        // Send checkboxes to the server via AJAX
-        fetch('https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php', {
-        	method: 'POST',
-        	headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        	body: 'action=run_analysis&tools=' + encodeURIComponent(JSON.stringify(selectedTools))
+function downloadFile(filename, event) {
+	event.preventDefault();
+    	fetch('download.php?file=' + encodeURIComponent(filename))
+        	.then(response => {
+            		if (!response.ok) {
+                		throw new Error('File not found');
+            		}
+            	return response.blob();
         })
-        .then(response => response.text())
-        .then(data => {
-		console.log('Server response:', data)
-		const outputclustalo = document.getElementById('clustalo-output');
+        .then(blob => {
+            	const a = document.createElement('a');
+            	a.href = URL.createObjectURL(blob);
+            	a.download = filename;
+            	document.body.appendChild(a);
+            	a.click();
+            	document.body.removeChild(a);
+        })
+        .catch(error => alert(error.message));
+}
 
-		if (outputclustalo){
-			outputclustalo.innerHTML = data;
-		}else{
-			console.error("Div id='clustalo-output' was not found.");
-        		const newDiv = document.createElement('div');
-        		newDiv.id = 'clustalo-output';
-        		newDiv.innerHTML = data;
-        		document.body.appendChild(newDiv)
-		}
-	})
-        .catch(error => {console.error('Error:', error)});
-	console.log("JS till the end")
-*/
+

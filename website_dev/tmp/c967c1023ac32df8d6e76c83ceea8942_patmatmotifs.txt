@@ -1,0 +1,35 @@
+########################################
+# Program: patmatmotifs
+# Rundate: Wed 26 Mar 2025 21:37:23
+# Commandline: patmatmotifs
+#    -full
+#    -sequence ./tmp/c967c1023ac32df8d6e76c83ceea8942_seq.fasta
+#    -outfile ./tmp/c967c1023ac32df8d6e76c83ceea8942_patmatmotifs.txt
+# Report_format: dbmotif
+# Report_file: ./tmp/c967c1023ac32df8d6e76c83ceea8942_patmatmotifs.txt
+########################################
+
+#=======================================
+#
+# Sequence: XP_065712012.2     from: 1   to: 358
+# HitCount: 1
+#
+# Full: Yes
+# Prune: Yes
+# Data_file: /usr/share/EMBOSS/data/PROSITE/prosite.lines
+#
+#=======================================
+
+Length = 4
+Start = position 139 of sequence
+End = position 142 of sequence
+
+Motif = AMIDATION
+
+ILSAAAGKKQSRTL
+     |  |
+   139  142
+
+
+#---------------------------------------
+#---------------------------------------

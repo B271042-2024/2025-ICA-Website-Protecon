@@ -1,17 +1,17 @@
 ########################################
 # Program: patmatmotifs
-# Rundate: Tue 25 Mar 2025 05:59:42
+# Rundate: Thu 27 Mar 2025 06:43:26
 # Commandline: patmatmotifs
 #    -full
-#    -sequence ./tmp/196de30671bac03f5e44259c54ef8404_seq.fasta
-#    -outfile ./tmp/196de30671bac03f5e44259c54ef8404_patmatmotifs.txt
+#    -sequence ./tmp/96c4e004b7562917f8da0d75b39cab62_seq.fasta
+#    -outfile ./tmp/96c4e004b7562917f8da0d75b39cab62_patmatmotifs.txt
 # Report_format: dbmotif
-# Report_file: ./tmp/196de30671bac03f5e44259c54ef8404_patmatmotifs.txt
+# Report_file: ./tmp/96c4e004b7562917f8da0d75b39cab62_patmatmotifs.txt
 ########################################
 
 #=======================================
 #
-# Sequence: XP_072212784.1     from: 1   to: 358
+# Sequence: XP_072197995.1     from: 1   to: 299
 # HitCount: 0
 #
 # Full: Yes
