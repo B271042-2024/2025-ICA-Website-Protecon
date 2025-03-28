@@ -265,7 +265,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
                 }
         }
 
-
+/*
 	function clustalo($jobid, $sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
 			echo "<br>";
@@ -328,6 +328,97 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			echo "<p>No sequence in the input FASTA file.</p>";
 		}
 	}
+*/
+
+
+	function clustalo($jobid, $sql_fasta, $sessionid){
+		if (!empty($sql_fasta)){
+        		echo "<br>";
+        		echo "<br>";
+
+        		if(!empty($jobid)){
+            			$sessionid = $jobid;
+        		}
+
+	        	$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
+        		$fasta_content = implode("\n", $sql_fasta);
+        		$createfile = fopen($input_seq, 'w');
+        		if($createfile){
+        			fwrite($createfile, $fasta_content);
+            			fclose($createfile);
+        		} else{
+            			echo "Error opening the file";
+            		return;
+        		};
+
+        		$output_clustalo = "./tmp/" . $sessionid . "_clustalo.aln";
+        		echo "<p><b>ClustalO output:</b></p>";
+        		$run_clustalo = shell_exec("clustalo -i $input_seq -o $output_clustalo");
+
+        		// Download button
+        		echo "<div class=button_download>";
+        		echo '<button onclick="downloadFile(\'' . basename($input_seq) . '\', event)">Download .fasta</button>';
+        		echo '<button onclick="downloadFile(\'' . basename($output_clustalo) . '\', event)">Download .aln</button>';
+        		echo "</div>";
+        		echo "<br>";
+
+        		// Display ClustalO output on website
+        		echo "<div class = 'display_clustalo'>";
+        		echo "<table class='table_aln' style='border-collapse: collapse;'>";
+
+		        // Fetch the sequences
+       			$output_contents = file_get_contents($output_clustalo);
+        		$lines = explode("\n", $output_contents);
+
+		        $sequences = [];
+        		$seq_header = "";
+        		$seq_sequence = "";
+
+		        // Process the output to collect sequences
+        		foreach ($lines as $line) {
+            			if (strpos($line, '>') === 0) { // Header line
+                			if (!empty($seq_sequence)) {
+                    				$sequences[] = ['header' => $seq_header, 'sequence' => $seq_sequence];
+                			}
+                			$seq_header = htmlspecialchars($line);
+                			$seq_sequence = "";
+            			} else {
+                			$seq_sequence .= trim($line);
+            			}
+        		}
+        		if (!empty($seq_sequence)) {
+            			$sequences[] = ['header' => $seq_header, 'sequence' => $seq_sequence];
+        		}
+
+        		// Find the longest sequence length to align all sequences
+        		$max_length = 0;
+        		foreach ($sequences as $seq) {
+            		$max_length = max($max_length, strlen($seq['sequence']));
+        	}
+
+        	// Create table rows for each sequence
+        	foreach ($sequences as $seq) {
+            		echo "<tr>";
+            		// sequence name
+            		echo "<td class='clustalo_header' style='padding: 5px; text-align: center;'>" . $seq['header'] . "</td>";
+
+            		// base blocks in the sequences
+            		$sequence_array = str_split(str_pad($seq['sequence'], $max_length, '-')); // Add gaps if sequence is shorter
+            		foreach ($sequence_array as $base) {
+                		echo "<td class='clustalo_seq' style='padding: 5px; text-align: center;'>" . $base . "</td>";
+            		}
+            		echo "</tr>";
+        	}
+
+	        echo "</table>";
+        	echo "</div>";
+        	return [$input_seq, $output_clustalo];
+    		} else {
+        		echo "<p>No sequence in the input FASTA file.</p>";
+    		}
+	}
+
+
 
 	function patmatmotifs($jobid, $sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
@@ -354,6 +445,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
                         echo "<br>";
                         echo "<br>";
 			echo "<br>";
+                        echo "<br>";
 			echo "<p><b>EMBOSS patmatmotifs output:</b></p>";
                         echo "<div class=button_download>";
                                 echo '<button onclick="downloadFile(\'' . basename($output_patmatmotifs) . '\', event)">Download motifs</button>';
