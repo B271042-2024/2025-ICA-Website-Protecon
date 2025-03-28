@@ -123,8 +123,12 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 	}
 
 
-        function fromysql_todelete($pdo, $sessionid){
+        function fromysql_todelete($jobid, $pdo, $sessionid){
 		try{
+                        if (!empty($jobid)){
+				$sessionid = $jobid;
+			}
+
 				$delete_sql = "DELETE FROM temporary_data WHERE session_id = :sessionid";
 				$delete_stmt = $pdo->prepare($delete_sql);
 				$delete_stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
@@ -256,7 +260,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 
 	function clustalo($jobid, $sql_fasta, $sessionid){
-//		if (!empty($sql_fasta)){
+		if (!empty($sql_fasta)){
 			echo "<br>";
                         echo "<br>";
 
@@ -313,9 +317,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			echo "</div>";
 			return [$input_seq, $output_clustalo];
 
-/*		}else{
+		}else{
 			echo "<p>No sequence in the input FASTA file.</p>";
-		}*/
+		}
 	}
 
 	function patmatmotifs($jobid, $sql_fasta, $sessionid){
@@ -466,11 +470,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		} else{
 			echo "<p>FASTA file does not exist possibly due to deletion. Please re-run analysis.</p>";
 		}
-	}
-
-
-	function deleteFilesinTmp(){
-		shell_exec("rm -rf ./tmp/*"); /**/
 	}
 
 
@@ -627,9 +626,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		exit;
 	}
 
-//	function removeDatafromPermanentmysql(){}
-//		//remove data from permanent table
-
 
 	if (isset($_POST['submit_id'])){
 		if (!empty($_POST['input_username'])){
@@ -642,7 +638,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			transferDataPermanent($sessionid, $pdo, $username, $date);
 
 			//delete temporary table
-			fromysql_todelete($pdo, $sessionid);
+			fromysql_todelete("", $pdo, $sessionid);
 
 		} else{
 			echo "<p>To save information, username is required.</p>";
@@ -654,9 +650,15 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 
 	if (isset($_POST['cancel'])){
-		fromysql_todelete($pdo, $sessionid);
+		fromysql_todelete($jobid, $pdo, $sessionid);
 		echo "<p>Session has been cleared.</p>";
 	}
+
+        function clearsessionfilesfromtmp($sessionid){
+//                shell_exec("rm -rf ./tmp/$sessionid*");
+//		echo "<p>tmp file is cleared.</p>";
+		shell_exec("rm -rf ./tmp/*"); /**/
+        }
 
 ?>
 
@@ -935,7 +937,7 @@ _TOOL1_FASTA;
 
 	//Tool 0: Extract Job ID from sql
 	if (isset($_POST['button0'])){
-                fromysql_todelete($pdo, $sessionid);
+                fromysql_todelete("", $pdo, $sessionid);
 
                 //extract input0 - 0_1
                 $jobid = trim($_POST['input0']);
@@ -978,7 +980,7 @@ _TOOL1_FASTA;
 	if (isset($_POST['button1'])){
 
 		//delete data from mysql each time user key in new entry at each session. It will only be saved once the user click save.
-		fromysql_todelete($pdo, $sessionid);
+		fromysql_todelete("", $pdo, $sessionid);
 		$_SESSION['session_id'] = bin2hex(random_bytes(16));
 
 		echo "<div id=output-seqdetails>";
@@ -1017,7 +1019,6 @@ _TOOL1_FASTA;
 		$id_string = implode(", ", $o_idlist);
 		$id_count = count($o_idlist);
 		echo "<p>Total sequences found: <b>$id_count</b>";
-//               	echo "<p>Accession ID: $id_string</p>";
 
 		$fasta_sequence = '';
 		$batches = array_chunk($o_idlist, 10);
@@ -1036,6 +1037,10 @@ _TOOL1_FASTA;
 	}
 
 $formSubmitted = isset($_POST['button_proceed']);  // Check if the form was submitted
+
+//to clear tmp folder before session ends
+//echo "<p>session_id()</p>";
+//register_shutdown_function('clearsessionfilesfromtmp', session_id());
 
 echo <<<_TAIL
 
