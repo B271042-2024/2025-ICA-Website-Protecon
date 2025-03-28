@@ -56,8 +56,6 @@ function runAnalysis(event){
 	xhr.send('button_run=1&tools=' + encodeURIComponent(JSON.stringify(selectedTools)));
         xhr.onload = function() {
                 if (xhr.status === 200){
-                        //if (!xhr.responseText.includes('id="content-main"')){
-                	console.log("Running ClustalO...");
 			document.getElementById('button-run').innerHTML = xhr.responseText;
                 } else{
                         console.error("Error: ", xhr.status);

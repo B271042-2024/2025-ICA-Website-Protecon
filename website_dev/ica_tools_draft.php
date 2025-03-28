@@ -70,40 +70,29 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 	if (isset($_POST['button_proceed'])){
 		echo "<br>";
-		echo "<br>";
-		echo "<p><i>Scroll below to continue. Refresh page to redo this section...</i></p>";
-		echo "<br>";
+		echo "<p><i>SCROLL BELOW. REFRESH PAGE TO RE-DO THIS SECTION...</i></p>";
                	echo "<hr>";
 		echo "<br>";
-		echo "<br>";
 		echo "<p><b>Please select tools to run your sequence analysis below:</b></p>";
-
-               	foreach ($_SESSION['sequence_data'] as $seq) {
-                       	transfertoSQL($pdo, $sessionid, $seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
-		}
-
+                foreach ($_SESSION['sequence_data'] as $seq) {
+                        transfertoSQL($pdo, $sessionid, $seq['acc'], $seq['name'], $seq['length'], $seq['sequence']);
+                }
  		echo "<div class='table_tools'>";
 			echo "<table>";
 				echo "<tr><th>Tools</th><th>Description</th><th>Select</th></tr>";
 				echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td></tr>";
 				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
 				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
-				echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
 				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
 			echo "</table>";
 		echo "</div>";
-		echo "<br>";
-		echo "<br>";
-		echo "<p><i>Once process is running, it may take awhile to finish depending on the size of your data. Press 'Run' once and wait...</i></p>";
-		echo '<img border="0" hspace="0" src="./ica_images/sand_clock.png" width="40" style="float: left;">';
-		echo "<br>";
-
 		echo "<form method='POST' action=''>";
 			echo '<div id="button-run" style="text-align: right;">';
 				echo "<button type='button' id='button5' onclick='runAnalysis(event)'>Run</button>";
 			echo "</div>";
 		echo "</form>";
 		exit;	// stop page from showing content-main
+
         }
 
 	function transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence){
@@ -139,12 +128,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 
 
-	function fromysql($jobid, $pdo, $sessionid){
+	function fromysql($pdo, $sessionid){
 		try{
-			if (!empty($jobid)){
-				$sessionid = $jobid;
-			}
-
 			$sqltoweb = "select * from temporary_data where session_id = :sessionid";
 			$stmt = $pdo->prepare($sqltoweb);
 			$stmt->bindParam(':sessionid', $sessionid, PDO::PARAM_STR);
@@ -205,7 +190,18 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
             			$stmtInsert->execute();
         		}
 
+
+/*
+			//from table temporary_data to session_details
+			$webtosql2 = "insert into session_details (user_id, session_id, time) values (:user_id, :session_id, :time)";
+			$stmtInsert2 = $pdo->prepare($webtosql2);
+                        $stmtInsert2->bindValue(':user_id', $username, PDO::PARAM_STR);
+                        $stmtInsert2->bindValue(':session_id', $sessionid, PDO::PARAM_STR);
+                        $stmtInsert2->bindValue(':time', $date, PDO::PARAM_STR);
+			$stmtInsert2->execute();
+*/
 			error_log("Data successfully transferred to MYSQL");
+
                 } catch (PDOException $e){
 			echo "<p>Error: " . $e->getMessage() . "</p>";
                         error_log("Error from MYSQL: " . $e->getMessage());
@@ -213,56 +209,17 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
         }
 
 
-        function transferDataPtoTemporary($jobid, $pdo, $date){
-                //transfer data to temp table
-                try{
-
-                        //fetch data from table temporary_data
-                        $sqltoweb = "select * from protein_sequences where session_id = :sessionid";
-                        $stmt = $pdo->prepare($sqltoweb);
-                        $stmt->bindParam(':sessionid', $jobid, PDO::PARAM_STR);
-                        $stmt->execute();
-
-                        $sql_accessionno = [];
-                        $sql_sequencename = [];
-                        $sql_length = [];
-                        $sql_fasta = [];
-
-                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)){
-                                $sql_fasta[] = $row['fasta_sequence'];
-                                $sql_accessionno[] = $row['accession_no'] ;
-                                $sql_sequencename[] = $row['sequence_name'];
-                                $sql_length[] = $row['length'];
-                        }
-
-                        //from table protein_sequences to temporary_data
-                        $webtosql1 = "insert into temporary_data (session_id, accession_no, sequence_name, length, fasta_sequence) values (:sessionid, :accession_no, :sequence_name, :length, :fasta_sequence)";
-                        $stmtInsert = $pdo->prepare($webtosql1);
-                        for ($i = 0; $i < count($sql_fasta); $i++) {
-                                $stmtInsert->bindParam(':sessionid', $jobid, PDO::PARAM_STR);
-                                $stmtInsert->bindParam(':accession_no', $sql_accessionno[$i], PDO::PARAM_STR);
-                                $stmtInsert->bindParam(':sequence_name', $sql_sequencename[$i], PDO::PARAM_STR);
-                                $stmtInsert->bindParam(':length', $sql_length[$i], PDO::PARAM_INT);
-                                $stmtInsert->bindParam(':fasta_sequence', $sql_fasta[$i], PDO::PARAM_STR);
-                                $stmtInsert->execute();
-                        }
-
-                        error_log("Data successfully transferred to MYSQL");
-                } catch (PDOException $e){
-                        echo "<p>Error: " . $e->getMessage() . "</p>";
-                        error_log("Error from MYSQL: " . $e->getMessage());
-                }
-        }
 
 
-	function clustalo($jobid, $sql_fasta, $sessionid){
+        function removeDatafromPermanentmysql(){}
+                //remove data from permanent table
+
+
+	function clustalo($sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
 			echo "<br>";
-                        echo "<br>";
-
-			if(!empty($jobid)){
-				$sessionid = $jobid;
-			}
+			echo "<hr>";
+			echo "<br>";
 
 			$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
 			$fasta_content = implode("\n", $sql_fasta);
@@ -318,13 +275,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		}
 	}
 
-	function patmatmotifs($jobid, $sql_fasta, $sessionid){
+	function patmatmotifs($sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
-
-                        if(!empty($jobid)){
-                                $sessionid = $jobid;
-                        }
-
 			//if file not exist, then create
 			$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
 			if(!file_exists($input_seq)){
@@ -340,8 +292,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			}
 
 			$output_patmatmotifs = "./tmp/" . $sessionid . "_patmatmotifs.txt";
-                        echo "<br>";
-                        echo "<br>";
 			echo "<br>";
 			echo "<p><b>EMBOSS patmatmotifs output:</b></p>";
                         echo "<div class=button_download>";
@@ -355,127 +305,48 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		}
 	}
 
-
-	function plotcon($jobid, $sql_fasta, $sessionid){
-		$input_file = "./tmp/" . $sessionid . "_clustalo.aln";
-		shell_exec("/usr/bin/plotcon -sequences ./tmp/8219690623a3e6bb8297bfb78dc8b07e_clustalo.aln -winsize 8 -graph png");
-	}
-
-
-	function iqtree($jobid, $sql_fasta, $sessionid){
-		if (!empty($sql_fasta)){
-                        echo "<br>";
-                        echo "<br>";
-                        echo "<br>";
-			echo "<p><b>IQTREE output (Bootstrap=1000):</b></p>";
-
-			//set session id
-                        if(!empty($jobid)){
-                                $sessionid = $jobid;
-                        }
-
-			//define input
-			$input_aln = "./tmp/" . $sessionid . "_clustalo.aln";
-
-			//if aln file is absent, run clustalo
-			if(!file_exists($input_aln)){
-                        	$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
-                        	if(!file_exists($input_seq)){
-                                	$fasta_content = implode("\n", $sql_fasta);
-                                	$createfile = fopen($input_seq, 'w');
-                                	if($createfile){
-                                        	fwrite($createfile, $fasta_content);
-                                        	fclose($createfile);
-                                	} else{
-                                        	echo "<p>Error opening the file</p>";
-                                        	return;
-                                	};
-                        	}
-                        	$run_clustalo = shell_exec("clustalo -i $input_seq -o $input_aln");
+	function plotcon($sql_fasta, $sessionid){
+                if (!empty($sql_fasta)){
+			$output_clustalo = "./tmp/" . $sessionid . "_clustalo.aln";
+			if(!file_exists($output_clustalo)){
+				clustalo($sql_fasta, $sessionid);
 			}
 
-			//iqtree folder
-			$folder_iqtree = "./tmp/" . $sessionid . "_iqtree";
-			if(!file_exists($folder_iqtree)){
-				mkdir($folder_iqtree, 0777, true);
-			}
+			shell_exec("/usr/bin/plotcon -sequences $output_clustalo -winsize 4 -graph png");
+			$output_plotcon_png = "./tmp/plotcon.1.png";
 
-			//copy aln to iqtree folder
-			$copy_input_aln = $folder_iqtree . "/" . basename($input_aln);
-			copy($input_aln, $copy_input_aln);
-
-			//run iqtree
-			$run_iqtree = shell_exec("cd $folder_iqtree && /localdisk/home/ubuntu-software/iqtree-2.2.0-Linux/bin/iqtree -B 1000 -s " . basename($copy_input_aln) . " 2>&1");
-
-			//zip folder
-			$zip_file = $folder_iqtree . ".zip";
-			shell_exec("cd ./tmp && zip -r " . basename($zip_file) . " " . basename($folder_iqtree));
-
-
-                        //set download button (output folder)
+			//download button
+                        echo "<p><b>EMBOSS plotcon output:</b></p>";
                         echo "<div class=button_download>";
-                                echo '<button onclick="downloadFile(\'' . basename($zip_file) . '\', event)">Download IQTREE folder</button>';
+                                echo '<button onclick="downloadFile(\'' . basename($output_plotcon_png) . '\', event)">Download .png</button>';
                         echo "</div>";
+			echo '<br>';
 
-			//to view the tree
-			echo '<p><b><a href="https://itol.embl.de/upload.cgi" style="text-decoration: none;" target="_blank">Upload and view TREEFILE on iTOL</a></b></p>';
-			echo "<p>TREEFILE can be retrieved from the zipped folder.</p>";
+                        //display content on the website
+			echo "<div class=display_plotcon>";
+				echo "<img src='{$output_plotcon_png}'>";
+			echo "</div>";
+                }else{
+                        echo "<p>No sequence in the input FASTA file.</p>";
+                }
+        }
 
-			echo "<br>";
-			//display the run
-			echo "<pre>$run_iqtree</pre>";
-
-		}
-	}
 
 	function nglviewer(){}
 
 
 	if (isset($_POST['button_run'])){
-		echo "<br>";
-		echo "<br>";
-                echo "<br>";
-		echo "<hr>";
-                echo "<br>";
-
-		if (!empty($jobid)){
-			$sql_fasta = fromysql($jobid, $pdo, $sessionid);
-		} else {
-			$sql_fasta = fromysql("", $pdo, $sessionid);
-		}
-
+		$sql_fasta = fromysql($pdo, $sessionid);
 		$tools = json_decode($_POST['tools'], true);
 		$result = '';
 
 		foreach ($tools as $tool){
 			if ($tool === 'ClustalO'){
-				if (!empty($jobid)){
-					$output = clustalo($jobid, $sql_fasta, $sessionid);
-				} else {
-					$output = clustalo("", $sql_fasta, $sessionid);
-				}
-
+				$output = clustalo($sql_fasta, $sessionid);
 			} elseif ($tool === 'patmatmotifs'){
-                               if (!empty($jobid)){
-                                        $output = patmatmotifs($jobid, $sql_fasta, $sessionid);
-                                } else {
-                                        $output = patmatmotifs("", $sql_fasta, $sessionid);
-                                }
-
+				$output = patmatmotifs($sql_fasta, $sessionid);
 			} elseif ($tool === 'plotcon'){
-                                if (!empty($jobid)){
-                                        $output = plotcon($jobid, $sql_fasta, $sessionid);
-                                } else {
-                                        $output = plotcon("", $sql_fasta, $sessionid);
-                                }
-
-			} elseif ($tool === 'iqtree'){
-                                if (!empty($jobid)){
-                                        $output = iqtree($jobid, $sql_fasta, $sessionid);
-                                } else {
-                                        $output = iqtree("", $sql_fasta, $sessionid);
-                                }
-
+				$output = plotcon($sql_fasta, $sessionid);
 			} else{
 				echo "ngl";
 			}
@@ -487,9 +358,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			$result .= $output;
 		}
 
-
-		//send result back to JS
-		echo $result;
+		echo $result;	//send result back to JS
 
 		echo "<br>";
 		//put the details whether to save session
@@ -498,12 +367,12 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 				echo '<br>';
 				echo '<hr>';
 				echo '<br>';
-				echo '<p><b>To save this session, please fill create a username and save.</b></p>';
+				echo '<p><br>To save your session, please fill in your username and press Save.</b></p>';
 				echo '<div class="save_session">';
 					echo '<label>Username:</label>';
 					echo '<input type="text" name="input_username" placeholder="Any random unique name"/>';
 				echo '</div>';
-				echo "<p><b>Your Session ID: $sessionid</b></p>";
+				echo "<p>Your Session ID: $sessionid</p>";
 				echo '<div class="button_session">';
 					echo '<button id="submit_id" name="submit_id" type="submit">Save</button>';
 					echo '<button id="cancel" name="cancel" type=submit>Cancel</button>';
@@ -657,10 +526,6 @@ echo <<<_HEAD
 			background-color: gray;
 		}
 
-		button:focus {
-    			background-color: gray;
-		}
-
 		.output_fasta {
 			border: 1px solid white;
 			padding: 15px;
@@ -744,11 +609,6 @@ echo <<<_HEAD
 			width: 200px;
 		}
 
-		button.delete-button:active {
-    			background-color: gray;
-		}
-
-
 	</style>
 </head>
 <body>
@@ -766,14 +626,9 @@ echo <<<_TOOL1_FASTA
 				<legend>Method 1: Use your saved Job ID</legend>
                         	<div class="input_row">
 					<label for="input0"><b>Job ID:</b></label>
-                        		<input type="text" id="input0" name="input0" placeholder="Enter Job ID">
+                        		<input type="text" id="input0" name="input0" placeholder="Enter job ID">
                         		<span>e.g. 1234567890abcdef</span>
 				</div>
-                                <div class="input_row">
-                                        <label for="input0_1"><b>Username:</b></label>
-                                        <input type="text" id="input0_1" name="input0_1" placeholder="Enter Username">
-                                        <span>e.g. panda123</span>
-                                </div>
                                 <br>
                                         <button type="submit" name="button0">Submit</button>
 			</fieldset>
@@ -820,46 +675,11 @@ _TOOL1_FASTA;
 // <!-- output1 starts -->
 
 	//Tool 0: Extract Job ID from sql
-	if (isset($_POST['button0'])){
-                fromysql_todelete($pdo, $sessionid);
 
-                //extract input0 - 0_1
-                $jobid = trim($_POST['input0']);
-                $ji_username = trim($_POST['input0_1']);
-
-		if (empty($jobid) || empty($ji_username)){
-			echo "<p>Error. Please key in Job Id and Username.</p>";
-			return;
-		}
-
-		//extract sessionid and seq
-		$_SESSION['session_id'] = $jobid;
-
-		transferDataPtoTemporary($jobid, $pdo, $date);
-
-		//select analyses
-                echo "<p><b>Please select tools to run your sequence analysis below:</b></p>";
-
-                echo "<div class='table_tools'>";
-                        echo "<table>";
-                                echo "<tr><th>Tools</th><th>Description</th><th>Select</th></tr>";
-                                echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td></tr>";
-                                echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
-                                echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
-                                echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
-                        echo "</table>";
-                echo "</div>";
-                echo "<form method='POST' action=''>";
-                        echo '<div id="button-run" style="text-align: right;">';
-                                echo "<button type='button' id='button5' onclick='runAnalysis(event)'>Run</button>";
-                        echo "</div>";
-                echo "</form>";
-		echo '<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>';
-                exit;   // stop page from showing content-main
-	}
 
 
 	// Tool 1: Extract details from NCBI protein
+	//if button
 	if (isset($_POST['button1'])){
 
 		//delete data from mysql each time user key in new entry at each session. It will only be saved once the user click save.
@@ -876,6 +696,7 @@ _TOOL1_FASTA;
 		echo "<p><b>Taxonomy Group:</b> $taxon_group</p>";
 
 		$ncbi_search = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=protein&term=" . urlencode($protein_name) . "+AND+" . urlencode($taxon_group);
+		//if >1 tick
 		if (!empty($_POST['options'])){
 			$encode_options = array_map('urlencode', $_POST['options']);
 			$filter = implode("+NOT+", $encode_options);
@@ -886,6 +707,7 @@ _TOOL1_FASTA;
 
 		// NCBI SEARCH
 		$o_search = file_get_contents($ncbi_search);
+//		echo "$ncbi_search";
                	if($o_search === false){
                        	echo "<p>Error. Unable to connect to NCBI API.</p>";
                        	return;
@@ -895,7 +717,7 @@ _TOOL1_FASTA;
                	$o_idlist = $o_data['esearchresult']['idlist'] ?? [];   // if null, assign an empty array
 
                	if(empty($o_idlist)){
-                       	echo "<p>ERROR. No matching protein found.</p>";
+                       	echo "<p>ERROR. No matching protein found.";
                        	return;
                	}
 
@@ -919,8 +741,6 @@ _TOOL1_FASTA;
 		displayFastaTable($fasta_sequence);
 
 	}
-
-$formSubmitted = isset($_POST['button_proceed']);  // Check if the form was submitted
 
 echo <<<_TAIL
 
