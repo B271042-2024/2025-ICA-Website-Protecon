@@ -256,7 +256,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 
 	function clustalo($jobid, $sql_fasta, $sessionid){
-		if (!empty($sql_fasta)){
+//		if (!empty($sql_fasta)){
 			echo "<br>";
                         echo "<br>";
 
@@ -313,9 +313,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			echo "</div>";
 			return [$input_seq, $output_clustalo];
 
-		}else{
+/*		}else{
 			echo "<p>No sequence in the input FASTA file.</p>";
-		}
+		}*/
 	}
 
 	function patmatmotifs($jobid, $sql_fasta, $sessionid){
@@ -352,13 +352,125 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			echo "<pre>$run_motif</pre>";
 			$output_contents = file_get_contents($output_patmatmotifs);
 			echo "<pre>" . ($output_contents) . "</pre>";
-		}
+
+                } else{
+                        echo "<p>FASTA file does not exist possibly due to deletion. Please re-run analysis.</p>";
+                }
 	}
 
 
 	function plotcon($jobid, $sql_fasta, $sessionid){
-		$input_file = "./tmp/" . $sessionid . "_clustalo.aln";
-		shell_exec("/usr/bin/plotcon -sequences ./tmp/8219690623a3e6bb8297bfb78dc8b07e_clustalo.aln -winsize 8 -graph png");
+		//check if it exist in the tmp
+                if (!empty($sql_fasta)){
+                        echo "<br>";
+                        echo "<br>";
+                        echo "<br>";
+                        echo "<p><b>EMBOSS plotcon output:</b></p>";
+
+			//set session id
+                	if(!empty($jobid)){
+                        	$sessionid = $jobid;
+                	}
+
+                        //define input
+                        $input_aln = "./tmp/" . $sessionid . "_clustalo.aln";
+
+                        //if aln file is absent, run clustalo
+                        if(!file_exists($input_aln)){
+                                $input_seq = "./tmp/" . $sessionid . "_seq.fasta";
+                                if(!file_exists($input_seq)){
+                                        $fasta_content = implode("\n", $sql_fasta);
+                                        $createfile = fopen($input_seq, 'w');
+                                        if($createfile){
+                                                fwrite($createfile, $fasta_content);
+                                                fclose($createfile);
+                                        } else{
+                                                echo "<p>Error opening the file</p>";
+                                                return;
+                                        };
+                                }
+                                $run_clustalo = shell_exec("clustalo -i $input_seq -o $input_aln");
+                        }
+
+			//winsize=4
+			//png
+			$output_png_4 = "./tmp/" . $sessionid . "_plotcon_4";
+			$realoutput_png_4 = "./tmp/" . $sessionid . "_plotcon_4.1.png";
+			$output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_png_4) . " 2>&1");
+			echo "<p>1. -winsize = 4 (Fine details: conservation score based on 4 consecutive bases at a time)</p>";
+			//data
+			$output_data_4 = "./tmp/" . $sessionid . "_plotcondata_4";
+                        $realoutput_data_4 = "./tmp/" . $sessionid . "_plotcondata_41.dat";
+                        $output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_data_4) . " 2>&1");
+
+                        //set download button (output)
+                        echo "<div class=button_download>";
+				echo '<button onclick="downloadFile(\'' . basename($realoutput_png_4) . '\', event)">Download .png</button>';
+				echo '<button onclick="downloadFile(\'' . basename($realoutput_data_4) . '\', event)">Download .dat</button>';
+                        echo "</div>";
+
+			//display
+                        echo "<img border='0' hspace='0' src='$realoutput_png_4' width='700' style='display: block; margin-left: 0'>";  //"" outside allows php to parse $var
+
+
+			echo "<br>";
+
+			//winsize=8
+			//png
+                        $output_png_8 = "./tmp/" . $sessionid . "_plotcon_8";
+                        $realoutput_png_8 = "./tmp/" . $sessionid . "_plotcon_8.1.png";
+                        $output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_png_8) . " 2>&1");
+                        echo "<p>2. -winsize = 8 (Moderate: conservation score based on 8 consecutive bases at a time)</p>";
+                        //data
+                        $output_data_8 = "./tmp/" . $sessionid . "_plotcondata_8";
+                        $realoutput_data_8 = "./tmp/" . $sessionid . "_plotcondata_81.dat";
+                        $output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_data_8) . " 2>&1");
+
+                        //set download button (output)
+                        echo "<div class=button_download>";
+                                echo '<button onclick="downloadFile(\'' . basename($realoutput_png_8) . '\', event)">Download .png</button>';
+                                echo '<button onclick="downloadFile(\'' . basename($realoutput_data_8) . '\', event)">Download .dat</button>';
+                        echo "</div>";
+
+			//display
+                        echo "<img border='0' hspace='0' src='$realoutput_png_8' width='700' style='display: block; margin-left: 0'>";  //"" outside allows php to parse $var
+
+			echo "<br>";
+
+			//winsize=12
+                        //png
+                        $output_png_12 = "./tmp/" . $sessionid . "_plotcon_12";
+                        $realoutput_png_12 = "./tmp/" . $sessionid . "_plotcon_12.1.png";
+                        $output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_png_12) . " 2>&1");
+                        echo "<p>3. -winsize = 12 (Smooth: conservation score based on 12 consecutive bases at a time)</p>";
+                        //data
+                        $output_data_12 = "./tmp/" . $sessionid . "_plotcondata_12";
+                        $realoutput_data_12 = "./tmp/" . $sessionid . "_plotcondata_121.dat";
+                        $output = shell_exec("./ica_plotcon.sh " . escapeshellarg($input_aln) . " " . escapeshellarg($output_data_12) . " 2>&1");
+
+                        //set download button (output)
+                        echo "<div class=button_download>";
+                                echo '<button onclick="downloadFile(\'' . basename($realoutput_png_12) . '\', event)">Download .png</button>';
+                                echo '<button onclick="downloadFile(\'' . basename($realoutput_data_12) . '\', event)">Download .dat</button>';
+                        echo "</div>";
+
+			//display
+                        echo "<img border='0' hspace='0' src='$realoutput_png_12' width='700' style='display: block; margin-left: 0'>";  //"" outside allows php to parse $var
+
+			echo "<br>";
+
+
+//                      echo "PHP is running as: " . shell_exec("whoami") . "<br>";
+
+
+		} else{
+			echo "<p>FASTA file does not exist possibly due to deletion. Please re-run analysis.</p>";
+		}
+	}
+
+
+	function deleteFilesinTmp(){
+		shell_exec("rm -rf ./tmp/*"); /**/
 	}
 
 
@@ -425,7 +537,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			//display the run
 			echo "<pre>$run_iqtree</pre>";
 
-		}
+                } else{
+                        echo "<p>FASTA file does not exist possibly due to deletion. Please re-run analysis.</p>";
+                }
 	}
 
 	function nglviewer(){}
@@ -846,8 +960,9 @@ _TOOL1_FASTA;
                                 echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td></tr>";
                                 echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
                                 echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
+                                echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
                                 echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
-                        echo "</table>";
+			echo "</table>";
                 echo "</div>";
                 echo "<form method='POST' action=''>";
                         echo '<div id="button-run" style="text-align: right;">';
