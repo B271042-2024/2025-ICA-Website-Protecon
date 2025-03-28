@@ -39,18 +39,6 @@ div.header_bar{
 	color: black
 }
 
-.footer {
-    	background: black;
-    	color: white;
-    	padding: 20px;
-    	text-align: center;
-    	position: relative;
-    	width: 100%;
-    	left: 50%; 
-    	transform: translateX(-50%);	
-}
-
-
 h1{
 	font: 18px Arial, sans-serif;
 }

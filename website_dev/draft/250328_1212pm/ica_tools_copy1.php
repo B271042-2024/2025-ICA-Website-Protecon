@@ -227,13 +227,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
                         $stmt->bindParam(':sessionid', $jobid, PDO::PARAM_STR);
                         $stmt->execute();
 
-        		// Check if job id exist
-        		if ($stmt->rowCount() == 0) {
-            			echo "<p><b>Warning: Job ID: $jobid does not exist.</b></p>";
-            			error_log("Warning: Job ID: $jobid does not exist.");
-            			exit;  // Exit
-        		}
-
                         $sql_accessionno = [];
                         $sql_sequencename = [];
                         $sql_length = [];
@@ -623,7 +616,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 					echo '<label>Username:</label>';
 					echo '<input type="text" name="input_username" placeholder="Any random unique name"/>';
 				echo '</div>';
-				echo "<p><b>Your Job ID: $sessionid</b></p>";
+				echo "<p><b>Your Session ID: $sessionid</b></p>";
 				echo '<div class="button_session">';
 					echo '<button id="submit_id" name="submit_id" type="submit">Save</button>';
 					echo '<button id="cancel" name="cancel" type=submit>Cancel</button>';
@@ -638,8 +631,8 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 		if (!empty($_POST['input_username'])){
 			//get input
 			$username = $_POST['input_username'];
-			echo "<p><i>Your session has been saved. To retrieve your session, please enter the information below.</i></p>";
-			echo "<p><i>Username: $username; Job ID: $sessionid</i></p>";
+			echo "<p>Your session has been saved. To retrieve your session, please enter the information below.</p>";
+			echo "<p>Username: $username; Session ID: $sessionid</p>";
 
 			//transfer info to the 2 tables from temporary_data
 			transferDataPermanent($sessionid, $pdo, $username, $date);
@@ -973,12 +966,6 @@ _TOOL1_FASTA;
                                 echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
 			echo "</table>";
                 echo "</div>";
-                echo "<br>";
-                echo "<br>";
-                echo "<p><i>Once process is running, it may take awhile to finish depending on the size of your data. Press 'Run' once and wait...</i></p>";
-                echo '<img border="0" hspace="0" src="./ica_images/sand_clock.png" width="40" style="float: left;">';
-                echo "<br>";
-
                 echo "<form method='POST' action=''>";
                         echo '<div id="button-run" style="text-align: right;">';
                                 echo "<button type='button' id='button5' onclick='runAnalysis(event)'>Run</button>";
