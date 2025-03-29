@@ -1,14 +1,14 @@
 div.header_bar{
-	background-color: #EFEBD8;
+	background-color: #00131c;
 	display: flex;
         align-items: center;            /* vertically center items */
         justify-content: space-between;         /* horizontally centers items within container */
-	padding: 8px 40px;
+	padding: 3px 40px;
 	box-shadow: 0 5px 15px rgba(0,0,0,0.06);
 }
 
 #header_menu{
-	font-size: 20px;
+	font-size: 24px;
 	display: flex;		/* apply flexbox to the container to ease alignment */
 	align-items:center;
 	justify-content: center;
@@ -24,7 +24,7 @@ div.header_bar{
 	text-decoration: none;
 	font: 20px Arial, sans-serif;
 	font-weight: bold;
-	color: black;
+	color: white;
 }
 
 #header_menu li a:hover{
@@ -40,7 +40,7 @@ div.header_bar{
 }
 
 .footer {
-    	background: black;
+    	background: #00131c;
     	color: white;
     	padding: 20px;
     	text-align: center;
@@ -52,11 +52,11 @@ div.header_bar{
 
 
 h1{
-	font: 18px Arial, sans-serif;
+	font: 20px Arial, sans-serif;
 }
 
 p{
-	font: 16px Arial, sans-serif;
+	font: 18px Arial, sans-serif;
 	text-align: left;
 }
 
@@ -64,12 +64,17 @@ pre{
 	text-align: left;
 }
 
+html, body {
+    height: auto; /* Allow natural content flow */
+}
+
+
 /* from ica_script.js */
 /*.JS-Tool-table{*/
 .table_tools{
 	width: 1000px;
 	border-collapse: collapse;
-	font: 16px Arial, sans-serif;
+	font: 18px Arial, sans-serif;
 	border: 1px solid #3D3D3D;
 }
 

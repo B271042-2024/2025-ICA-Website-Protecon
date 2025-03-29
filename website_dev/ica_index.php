@@ -10,7 +10,7 @@ $db_user = getenv('DB_USER');
 $db_password = getenv('DB_PASSWORD');
 
 try{
-	$pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_password);
+	$pdo = new PDO("mysql:host=127.0.0.1;dbname=$db_name", $db_user, $db_password);
 	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	// get error
 } catch (PDOException $e){
 	echo "Connection failed: " . $e->getMessage();
@@ -42,7 +42,7 @@ try{
 	<iframe id="contentFrame" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_tools.php" width="100%" height="800px" style="border:none;"></iframe>
 
 	<footer class="footer">
-    		<p>2025 ProteCon by ProteCon Team.</p>
+    		<p>2025 Prote-Con by Prote-Con Team. Contact Us at team@protecon.com</p>
 	</footer>
 
 

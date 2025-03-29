@@ -8,14 +8,32 @@ if (!isset($_SESSION['session_id'])) {
 $sessionid = $_SESSION['session_id'];
 $date = date('Y-m-d');
 
+
+/*
+// setup PDO for mysql
+$db_host = getenv('DB_HOST');
+$db_name = getenv('DB_NAME');
+$db_user = getenv('DB_USER');
+$db_password = getenv('DB_PASSWORD');
+
+try{
+        $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_password);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
+} catch (PDOException $e){
+        echo "Connection failed: " . $e->getMessage();
+}
+
+var_dump($_SERVER['DB_HOST']);
+*/
+
 // setup PDO for mysql
 $hostname = '127.0.0.1';
 $database = 's2704130_IWD_ICA';
 $username = 's2704130';
 $password = '@DriUni11111997';
-
 $pdo = new PDO("mysql:host=$hostname; dbname=$database; charset=utf8mb4", $username, $password);
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
+
 
 	if (!isset($_SESSION['sequence_data'])){
 		$_SESSION['sequence_data'] = [];
@@ -265,71 +283,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
                 }
         }
 
-/*
-	function clustalo($jobid, $sql_fasta, $sessionid){
-		if (!empty($sql_fasta)){
-			echo "<br>";
-                        echo "<br>";
-
-			if(!empty($jobid)){
-				$sessionid = $jobid;
-			}
-
-			$input_seq = "./tmp/" . $sessionid . "_seq.fasta";
-			$fasta_content = implode("\n", $sql_fasta);
-			$createfile = fopen($input_seq, 'w');
-			if($createfile){
-				fwrite($createfile, $fasta_content);
-				fclose($createfile);
-			} else{
-				echo "Error opening the file";
-				return;
-			};
-
-			$output_clustalo = "./tmp/" . $sessionid . "_clustalo.aln";
-                        echo "<p><b>ClustalO output:</b></p>";
-			$run_clustalo = shell_exec("clustalo -i $input_seq -o $output_clustalo");
-
-			//download button
-			echo "<div class=button_download>";
-				echo '<button onclick="downloadFile(\'' . basename($input_seq) . '\', event)">Download .fasta</button>';
-				echo '<button onclick="downloadFile(\'' . basename($output_clustalo) . '\', event)">Download .aln</button>';
-			echo "</div>";
-			echo "<br>";
-
-			//display clustalo output on website
-			echo "<div class = 'display_clustalo'>";
-			echo "<table class='table_aln'>";
-			echo "<tr><th style='width: 200px' class='clustalo_header'>Name</th><th class='clustalo_seq'>Overview of alignment</th></tr>";
-
-			$output_contents = file_get_contents($output_clustalo);
-			$lines = explode("\n", $output_contents);
-			$seq_header = "";
-			$seq_sequence = "";
-			foreach ($lines as $line){
-				if (strpos($line, '>') === 0){
-					if (!empty($seq_header)){
-						echo "<tr><td style='width: 200px' class='clustalo_header'>$seq_header</td><td class='clustalo_seq'>$seq_sequence</td></tr>";
-					}
-					$seq_header = htmlspecialchars($line);
-					$seq_sequence = "";
-				} else{
-						$seq_sequence .= trim($line);
-				}
-			}
-			if (!empty($seq_header)){
-				echo "<tr><td class='clustalo_header'>$seq_header</td><td class='clustalo_seq'>$seq_sequence</td></tr>";
-			}
-			echo "</table>";
-			echo "</div>";
-			return [$input_seq, $output_clustalo];
-
-		}else{
-			echo "<p>No sequence in the input FASTA file.</p>";
-		}
-	}
-*/
-
 
 	function clustalo($jobid, $sql_fasta, $sessionid){
 		if (!empty($sql_fasta)){
@@ -396,7 +349,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
             		$max_length = max($max_length, strlen($seq['sequence']));
         	}
 
-        	// Create table rows for each sequence
+        	// Create rows for each sequence
         	foreach ($sequences as $seq) {
             		echo "<tr>";
             		// sequence name
@@ -776,7 +729,7 @@ echo <<<_HEAD
 
 		/* General styling */
                 .input_group, legend, label, span {
-                        font: 16px Arial, sans-serif;
+                        font: 18px Arial, sans-serif;
                 }
 
 		input[type="text"], input[type="number"] {
@@ -801,7 +754,7 @@ echo <<<_HEAD
 
 		/* Styling the div container */
 		.input_group, legend {
-			font: 18px Arial, sans-serif;
+			font: 20px Arial, sans-serif;
 		}
 
 		.methods {
@@ -865,7 +818,7 @@ echo <<<_HEAD
 			border-radius: 5px;
 			border: none;
 			cursor: pointer;
-			font-size: 16px;
+			font-size: 18px;
 		}
 
 		button:hover {
@@ -885,7 +838,7 @@ echo <<<_HEAD
 			height: 300px;
 			text-align: left;
 			overflow: auto;
-			font: 16px Arial, sans-serif;
+			font: 18px Arial, sans-serif;
 		}
 
 		table {
@@ -911,7 +864,7 @@ echo <<<_HEAD
                         width: 95%;
                         text-align: left;
                         overflow: auto;
-                        font: 16px Arial, sans-serif;
+                        font: 18px Arial, sans-serif;
 		}
 
 		.display_clustalo {
@@ -922,7 +875,7 @@ echo <<<_HEAD
                         width: 95%;
                         text-align: left;
                         overflow: auto;
-			font: 16px Arial, sans-serif;
+			font: 18px Arial, sans-serif;
 		}
 
 		.table_aln {

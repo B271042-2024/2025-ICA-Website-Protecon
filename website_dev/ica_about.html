@@ -1,1 +1,72 @@
-jlkjlkjfs
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- create shared header -->
+
+<head>
+	<style>
+                body {
+                        background-image: url('./ica_images/about_wallpaper.jpg');
+                        background-size: cover; /* Ensures it covers the whole screen */
+                        background-position: center; /* Centers the image */
+                        background-repeat: no-repeat; /* Prevents tiling */
+                        background-attachment: fixed; /* Keeps it fixed when scrolling */
+                }
+
+		.main{
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+                .main_left, .main_credit{
+                        border: none;
+                        background: rgba(0, 0, 0, 0.7); /*a little transparent*/
+                        padding: 15px;
+                        border-radius: 5px;
+                        width: 700px;
+                        height: 300px;
+                        text-align: left;
+                        overflow: auto;
+			margin: 20px auto
+                }
+
+               .main_right{
+                        border: none;
+                        background: rgba(0, 0, 0, 0.7); /*a little transparent*/
+                        padding: 15px;
+                        border-radius: 5px;
+                        width: 700px;
+                        height: 300px;
+                        text-align: left;
+                        overflow: auto;
+			margin: 20px auto;
+			align-self: flex-end;
+                }
+
+	</style>
+
+</head>
+<body>
+
+	<div class="main">
+		<div class="main_left">
+			<h2 style="font-size: 40px; font-family: Arial, sans-serif; color: white">Who we are</h2>
+			<p style="font-size: 20px; font-family: Arial, sans-serif; color: white">We are bioinformaticians from University of Edinburgh, Scotland. Our experties includes developing bioinformatics tools such as Prote-Con. We offer both open-source and paid tools. Contact us to learn more!</p>
+		</div>
+
+		<div class="main_right">
+			<h2 style="font-size: 40px; font-family: Arial, sans-serif; color: white">About Prote-Con</h2>
+			<p style="font-size: 20px; font-family: Arial, sans-serif; color: white">Prote-Con acts as an integrated website, combining multiple tools for protein conservation explorations. Our objective is to expedite protein sequence analysis, by providing all-in-one feature. Tools: ClustalO, EMBOSS patmatmotifs, EMBOSS plotcon and IQTREE. Data retrieved via Prote-Con are from NCBI Protein database.</p>
+		</div>
+
+        	<div class="main_credit">
+                	<h2 style="font-size: 40px; font-family: Arial, sans-serif; color: white">Credits</h2>
+                	<p style="font-size: 20px; font-family: Arial, sans-serif; color: white">Few AI tools and websites were used to develop this website. All listed below:</p>
+			<pre style="color: white; font-size: 20px; font-family: Arial, sans-serif">W3Schools: Basic command guidelines
+			Guidance to header UI/UX
+			ChatGPT: Fix Errors and assist with complex commands generation</pre>
+        	</div>
+	</div>
+</body>
+</html>
