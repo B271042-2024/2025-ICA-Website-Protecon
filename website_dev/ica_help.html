@@ -1,1 +1,134 @@
-dsfkjsdf
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <style>
+		.help_container{
+			border: 1px solid #D3D3D3;
+			border-radius: 5px;
+			padding: 10px;
+			display: block;	/* to make the box visible */
+			font: 16px Arial, sans-serif;
+		}
+
+		.help_container p, .help_container li, .help_container a{
+			font-size: inherit; /* Ensures all elements use the same font-size */
+		}
+
+        </style>
+
+	<link rel="stylesheet" href="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_style.css">
+
+</head>
+<body>
+
+	<div class="help_container">
+		<p><b>Resources<b></p>
+		<ul><li>
+			<p><a href='https://github.com/B271042-2024/2025-ICA-Website-Protecon/tree/4cbcf01747cc308078fc73ea6c020e5de3b46c63/website_dev' style='text-decoration: none' target='_blank'>Github repository</a></p>
+		</li></ul>
+	</div>
+	<br>
+        <div class="help_container">
+                <p><b>Objectives</b></p>
+                        <p>Prote-Con is developed for protein conservation analysis. Analyses offered include sequence alignment, conservation plot, motif search and phylogenetic tree construction.</p>
+			<p>As a biologist, it can be troublesome to learn how to code. Hence, we offer you solutions. Run few selected tools and download your data.</p>
+			<ol>
+				<li>Providing input. Only FASTA format are permitted in this website. FASTA format as below:</li>
+					<p>>sequence name</p>
+					<p>KDSJBDJBFSDFSBDFKEPJSBNBJVBSKDBFBEK</p>
+				<li>If the sequences are retrieved from NCBI Protein webpage via Prote-Con, users are allowed to filter them for analysis.</li>
+				<li>Protein conservation analysis</li>
+					<ul>
+						<li>ClustalO (v1.2.4) is used to align protein sequences. Huge gaps within the sequences may indicate the presence of very distant or unrelated sequences hence, it is possibly useful to exclude them from the analysis.</li>
+						<li>EMBOSS patmatmotifs (v6.6.0.0) is used to search for motifs. Protein motifs are short, recurring amino acid sequences that are considered biologically significant and form functional domains.</li>
+						<li>EMBOSS plotcon (v6.6.0.0) is used to plot protein sequence conservation. Highly conserved regions will have high value in the plot, suggesting that the mutation rates within the regions are very low across the organisms. It may also suggest that the regions may have significant functional constraints that may be useful for evolutionary studies.</li>
+						<li>IQTREE (v2.2.0) is used to construct a phylogenetic tree based on protein sequences. Protein sequences are more conserved than DNA, and often preferred in evolutionary studies, especially when involving a more distant organisms. Those with similar functions usually tend to cluster together in a phylogenetic tree.</li>
+					</ul>
+			</ol>
+        </div>
+	<br>
+	<div class="help_container">
+                <p><b>How to use it?</b></p>
+                <p>Input protein FASTA sequences (restricted to protein sequences)</p>
+			<ol>
+				<li>
+					Method 1: Use your saved Job ID
+					<ul>
+						<li><i>Restricted for returning users who saved their Job ID and created a username.</i></li>
+						<li>Purpose: Only to re-run analysis and save output files.</li>
+						<li>Instructions: Fill in your username and Job ID. Press Submit.</li>
+					</ul>
+				</li>
+				<br>
+				<li>
+					Method 2: Retrieve sequences from NCBI Protein
+					<ul>
+						<li><i>Use the examples next to the box to test the function.</i></li>
+						<li>Purpose: To retrieve FASTA sequences from NCBI Protein website.</li>
+						<li>Instructions: Fill in the protein name and organism. Press Submit.</li>
+					</ul>
+				</li>
+				<br>
+				<li>
+					Method 3: Upload FASTA file
+					<ul>
+						<li><i>Restricted to .fasta, .fa and .txt files.</i></li>
+						<li>Purpose: To upload FASTA file.</li>
+						<li>Instructions: Select FASTA file from your computer. Press Upload.</li>
+					</ul>
+				</li>
+			</ol>
+		<br>
+		<p>Preview and filter sequences (only for Method 2 [from NCBI Protein])</p>
+			<ol>
+				<li>Select the relevant rows in the table.</li>
+				<li>Press Remove.</li>
+				<li>Press Submit once ready.</li>
+			</ol>
+		<br>
+		<p>Select tools to run analysis</p>
+			<ol>
+				<li>ClustalO (v1.2.4)</li>
+					<ul>
+						<li>Objective: To align protein sequences.</li>
+						<li>Mode: Default</li>
+					</ul>
+                                <li>EMBOSS patmatmotifs (v6.6.0.0)</li>
+                                        <ul>
+                                                <li>Objective: To search for motifs from protein sequences.</li>
+                                                <li>Mode: Default</li>
+                                        </ul>
+                                <li>EMBOSS plotcon (v6.6.0.0)</li>
+                                        <ul>
+                                                <li>Objective: To plot protein sequence conservation.</li>
+						<li>Mode:</li>
+							<ul>
+								<li>Window size (3): 4 for fine details (conservation score based on 4 consecutive bases at a time), 8 for moderate (conservation score based on 8 consecutive bases at a time), 12 for smooth (conservation score based on 12 consecutive bases at a time)</li>
+								<li>Graph (2): png for plot, data for .txt file containing conservation scores</li>
+							</ul>
+					</ul>
+                                <li>IQTREE (v2.2.0)</li>
+                                        <ul>
+                                                <li>Objective: To construct phylogenetic tree based on the protein sequences provided.</li>
+						<li>Mode: Bootstrap parameter of 1000.</li>
+						<li><i>Only suitable for 3+ protein sequences.</i></li>
+					</ul>
+			</ol>
+		<br>
+		<p>Save your session</p>
+			<ol>
+				<li>Objective: To save session and enable users to return to previous data by using the Job ID and username</li>
+				<li>Instructions: Create a username and press Save. Please keep the Job ID for returning purposes.</li>
+				<li><i>Username is not restricted. It is only used for data tracking purposes in case users forget Job ID. Please contact us for support.</i></li>
+			</ol>
+        </div>
+	<br>
+	<div class="help_container">
+		<p><b>Report issues</b></p>
+		<p>Please contact us for support at team@protecon.com</p>
+	</div>
+	<br>
+
+</body>
+</html>

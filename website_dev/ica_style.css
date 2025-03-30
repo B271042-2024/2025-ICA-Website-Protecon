@@ -47,7 +47,7 @@ div.header_bar{
     	position: relative;
     	width: 100%;
     	left: 50%; 
-    	transform: translateX(-50%);	
+    	transform: translateX(-50%);
 }
 
 

@@ -3,20 +3,6 @@ session_start();
 $sessionid = session_id();
 $date = date("d-m-Y");
 
-// setup PDO for mysql
-$db_host = getenv('DB_HOST');
-$db_name = getenv('DB_NAME');
-$db_user = getenv('DB_USER');
-$db_password = getenv('DB_PASSWORD');
-
-try{
-	$pdo = new PDO("mysql:host=127.0.0.1;dbname=$db_name", $db_user, $db_password);
-	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	// get error
-} catch (PDOException $e){
-	echo "Connection failed: " . $e->getMessage();
-}
-
-
 ?>
 
 

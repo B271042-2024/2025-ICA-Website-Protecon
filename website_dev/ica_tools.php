@@ -1,38 +1,54 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['session_id'])) {
-	$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
-}
+	//set session id
+	if (!isset($_SESSION['session_id'])) {
+		$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
+	}
 
-$sessionid = $_SESSION['session_id'];
-$date = date('Y-m-d');
+	$sessionid = $_SESSION['session_id'];
+	$date = date('Y-m-d');
 
 
-/*
-// setup PDO for mysql
-$db_host = getenv('DB_HOST');
-$db_name = getenv('DB_NAME');
-$db_user = getenv('DB_USER');
-$db_password = getenv('DB_PASSWORD');
+	//connect to .bash_profile that has details to connect to mysql
+	function loadBashProfileVars() {
+		$bashProfilePath = '/home/s2704130/.bash_profile';
 
-try{
-        $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_password);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
-} catch (PDOException $e){
-        echo "Connection failed: " . $e->getMessage();
-}
+	    	if (!file_exists($bashProfilePath)) {
+        		echo '<p>Error: .bash_profile not found at ' . $bashProfilePath . '</p>';
+        		return false;
+    		}
 
-var_dump($_SERVER['DB_HOST']);
-*/
+    		$bashProfile = file_get_contents($bashProfilePath);
 
-// setup PDO for mysql
-$hostname = '127.0.0.1';
-$database = 's2704130_IWD_ICA';
-$username = 's2704130';
-$password = '@DriUni11111997';
-$pdo = new PDO("mysql:host=$hostname; dbname=$database; charset=utf8mb4", $username, $password);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
+    		// Pattern to match variable definitions in .bash_profile
+		preg_match_all('/export\s+(DB_[A-Za-z0-9_]+)=([^\n]+)/', $bashProfile, $matches);
+
+		for ($i = 0; $i < count($matches[1]); $i++) {
+        		$key = $matches[1][$i];
+        		$value = trim($matches[2][$i], '"\'');
+        		putenv("$key=$value");
+    		}
+    		return true;
+	}
+
+	// Load the MySQL connection variables from .bash_profile
+	loadBashProfileVars();
+
+	$dbHost = getenv('DB_HOST');
+	$dbUser = getenv('DB_USER');
+	$dbPass = getenv('DB_PASSWORD');
+	$dbName = getenv('DB_NAME');
+
+	//print_r(getenv());
+
+	//connect to mysql
+	try{
+        	$pdo = new PDO("mysql:host=$dbHost;dbname=$dbName;charset=utf8mb4", $dbUser, $dbPass);
+        	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
+	} catch (PDOException $e){
+        	echo "Connection failed: " . $e->getMessage();
+	}
 
 
 	if (!isset($_SESSION['sequence_data'])){
@@ -72,7 +88,6 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 			echo "<button type='submit' id='button4' onclick=proceedTool(event)>Proceed</button>";
 		echo "</div>";
 		echo "</form>";
-
 	} //end fxn
 
 	// to match with the visualized data in the table, only transfer data that are not deleted to mysql
@@ -358,7 +373,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
             		// base blocks in the sequences
             		$sequence_array = str_split(str_pad($seq['sequence'], $max_length, '-')); // Add gaps if sequence is shorter
             		foreach ($sequence_array as $base) {
-                		echo "<td class='clustalo_seq' style='padding: 5px; text-align: center;'>" . $base . "</td>";
+                		echo "<td class='clustalo_seq' style='padding: 5px; text-align: center; font-size: 14px'>" . $base . "</td>";
             		}
             		echo "</tr>";
         	}
@@ -586,7 +601,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 			echo "<br>";
 			//display the run
-			echo "<pre>$run_iqtree</pre>";
+			//echo "<pre>$run_iqtree</pre>";
 
                 } else{
                         echo "<p>FASTA file does not exist possibly due to deletion. Please re-run analysis.</p>";
@@ -663,7 +678,7 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 				echo '<br>';
 				echo '<hr>';
 				echo '<br>';
-				echo '<p><b>To save this session, please fill create a username and save.</b></p>';
+				echo '<p><b>To save this session, please create a username and save.</b></p>';
 				echo '<div class="save_session">';
 					echo '<label>Username:</label>';
 					echo '<input type="text" name="input_username" placeholder="Any random unique name"/>';
@@ -702,13 +717,12 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);  // get error
 
 
 	if (isset($_POST['cancel'])){
-		fromysql_todelete($jobid, $pdo, $sessionid);
+		fromysql_todelete($pdo, $sessionid);
 		echo "<p>Session has been cleared.</p>";
 	}
 
+
         function clearsessionfilesfromtmp($sessionid){
-//                shell_exec("rm -rf ./tmp/$sessionid*");
-//		echo "<p>tmp file is cleared.</p>";
 		shell_exec("rm -rf ./tmp/*"); /**/
         }
 
@@ -728,43 +742,50 @@ echo <<<_HEAD
 	<style>
 
 		/* General styling */
-                .input_group, legend, label, span {
+                .input_group, legend, label, span{
                         font: 18px Arial, sans-serif;
                 }
 
-		input[type="text"], input[type="number"] {
+		input[type="text"], input[type="number"]{
     			padding: 8px;
     			margin: 5px 10px 5px 0; /* Space on the right side */
     			width: 100px; /* Set fixed width for inputs */
     			box-sizing: border-box;
 		}
 
-		input[type="checkbox"] {
+		input[type="checkbox"]{
     			margin-right: 5px;
 		}
 
-		label {
+		label{
     			font-weight: bold;
     			width: auto;
 		}
 
-		span {
+		span{
 			width: auto;
 		}
 
 		/* Styling the div container */
-		.input_group, legend {
+		.input_group, legend{
 			font: 20px Arial, sans-serif;
 		}
 
-		.methods {
+		.listtools{
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			background: rgba(0, 0, 0, 0.5);;
+		}
+
+		.methods{
     			display: flex;
     			flex-direction: column;
     			gap: 20px;
 		}
 
 		/* Aligning Method 1 and Method 2 with spacing */
-		fieldset {
+		fieldset{
     			border: 1px solid #D3D3D3;
     			padding: 15px;
     			border-radius: 5px;
@@ -772,64 +793,77 @@ echo <<<_HEAD
     			width: 95%;
 		}
 
-		legend {
-    			font-weight: bold;
+		legend{
+/*    			font-weight: bold;	*/
     			padding: 0 10px;
+/*			color: #808080;		*/
 		}
 
-		.input_checkbox {
+		.input_checkbox{
     			margin-top: 10px;
 		}
 
-		.only_checkbox {
+		.only_checkbox{
     			display: flex;
     			flex-direction: column;
     			gap: 8px;
 		}
 
-		.only_checkbox input[type="checkbox"] {
+		.only_checkbox input[type="checkbox"]{
 			transform: scale(1.5);
 			margin-right: 15px;
 		}
 
-		.input_row {
+		.input_row{
     			display: flex;
     			align-items: center;
     			margin-bottom: 10px;
 		}
 
-		.input_row label {
+		.input_row label{
     			width: 200px;
 		}
 
-		.input_row input {
+		.input_row input{
     			width: 500px;
 		}
 
-		.input_row span {
+		.input_row span{
 			margin-left: 15px;
 		}
 
-		button {
+		button{
 			padding: 8px 20px;
-			background-color: #0000FF;
-			font-weight: bold;
-			color: white;
+			background-color: #DCDCDC;
+/*			font-weight: bold;	*/
+			color: black;
 			border-radius: 5px;
-			border: none;
+			border: 1px solid black;
 			cursor: pointer;
-			font-size: 18px;
+			font-size: 16px;
 		}
 
-		button:hover {
+		button:hover{
 			background-color: gray;
 		}
 
-		button:focus {
+		button:focus{
     			background-color: gray;
 		}
 
-		.output_fasta {
+		.FASTA_file_preview{
+			border: 1px solid gray;
+			padding: 5px;
+                 	border-radius: 5px;
+			display: block;
+			width: 95%;
+			height: 300px;
+			text-align: left;
+			overflow: auto;
+			font: 18px Arial, sans-serif;
+		}
+
+		.output_fasta{
 			border: 1px solid white;
 			padding: 15px;
 			border-radius: 5px;
@@ -841,22 +875,22 @@ echo <<<_HEAD
 			font: 18px Arial, sans-serif;
 		}
 
-		table {
+		table{
 			width: 1100px;
 			border-collapse: collapse;
 		}
 
-		table th, table td {
+		table th, table td{
 			padding: 10px;
 			border: 1px solid #D3D3D3;
 		}
 
-		table th {
+		table th{
 			background-color: black;
 			color: white;
 		}
 
-		.table_tools {
+		.table_tools{
                         border: 1px solid white;
                         padding: 15px;
                         border-radius: 5px;
@@ -867,7 +901,7 @@ echo <<<_HEAD
                         font: 18px Arial, sans-serif;
 		}
 
-		.display_clustalo {
+		.display_clustalo{
                         border: 1px solid #D3D3D3;
                         padding: 5px;
                         border-radius: 5px;
@@ -878,21 +912,21 @@ echo <<<_HEAD
 			font: 18px Arial, sans-serif;
 		}
 
-		.table_aln {
+		.table_aln{
 			border: none;
 		}
 
-		.table_aln th:first-child, .table_aln td:first-child {
+		.table_aln th:first-child, .table_aln td:first-child{
     			width: 400px;
     			white-space: nowrap;
 			font-size: 12px;
 		}
 
-		.table_aln th:nth-child(2), .table_aln td:nth-child(2) {
+		.table_aln th:nth-child(2), .table_aln td:nth-child(2){
 			white-space: nowrap;
 		}
 
-		.display_plotcon {
+		.display_plotcon{
                         border: 1px solid #D3D3D3;
                         padding: 5px;
                         border-radius: 5px;
@@ -907,15 +941,24 @@ echo <<<_HEAD
         		align-items: center;
 		}
 
-		input[name="input_username"] {
+		input[name="input_username"]{
 			padding: 5px;
 			width: 200px;
 		}
 
-		button.delete-button:active {
+		button.delete-button:active{
     			background-color: gray;
 		}
 
+		.span_click{
+			cursor: default;
+		}
+
+		.span_click:hover{
+			font-weight: bold;
+			color: blue;
+			cursor: pointer;
+		}
 
 	</style>
 </head>
@@ -926,10 +969,11 @@ echo <<<_TOOL1_FASTA
 <!-- 1 EXTRACT INFORMATION FROM NCBI PROTEIN BEGINS -->
 <!-- input1 begins -->
 
-	<form method="POST" action="ica_tools.php">
+<div class='main_layout'>
+	<form method="POST" action="ica_tools.php" enctype="multipart/form-data">
 		<br>
 		<div class="methods" id="content-main">
-		<h1><b>Get your Sequences</b></h1>
+		<h1><b>Get your Sequences (Refresh page to redo this section)</b></h1>
 			<fieldset>
 				<legend>Method 1: Use your saved Job ID</legend>
                         	<div class="input_row">
@@ -946,19 +990,20 @@ echo <<<_TOOL1_FASTA
                                         <button type="submit" name="button0">Submit</button>
 			</fieldset>
 
-			<p>OR</p>
+			<p><b>OR</b></p>
 
 			<fieldset>
 				<legend>Method 2: Retrieve sequences from NCBI Protein</legend>
+				<p><i>To use example, click on Glucose-6-Phosphatase and Aves. Press Submit. The output will be at the bottom of the page.</i></p>
 				<div class="input_row">
 					<label for="input1"><b>Protein Name:</b></label>
 					<input type="text" id="input1" name="input1" placeholder="Enter protein name">
-					<span>e.g. Glucose-6-Phosphatase</span>
+					<span onclick="document.getElementById('input1').value='Glucose-6-Phosphatase'" class="span_click">e.g. Glucose-6-Phosphatase</span>
 				</div>
 				<div class="input_row">
                 			<label for="input2"><b>Taxonomy Group:</b></label>
                 			<input type="text" id="input2" name="input2" placeholder="Enter taxonomic group">
-                			<span>e.g. Aves</span>
+                			<span onclick="document.getElementById('input2').value='Aves'" class="span_click">e.g. Aves</span>
 				</div>
 				<br>
 				<div class="input_checkbox">
@@ -977,15 +1022,124 @@ echo <<<_TOOL1_FASTA
 				<br>
 					<button type="submit" name="button1">Submit</button>
 			</fieldset>
+
+			<p><b>OR</b></p>
+
+                        <fieldset>
+                                <legend>Method 3: Upload FASTA file</legend>
+                                <div class="input_row">
+                                        <label for="upload_fastafile"><b>Upload FASTA file:</b></label>
+                                        <input type="file" id="upload_fasta" name="upload_fasta" accept=".fasta,.fa,.txt">
+                                        <span>Only .fasta, .fa, .txt files</span>
+                                </div>
+                                <br>
+                                        <button type="submit" name="button2">Upload</button>
+                        </fieldset>
 		</div>
 		<br>
 	</form>
+</div>
+
 <!-- input1 ends -->
 _TOOL1_FASTA;
 
 
 
 // <!-- output1 starts -->
+
+	//Tool2: Upload FASTAfile onto website
+	if (isset($_POST['button2'])){
+		//check if the file exist or error associated
+		if (!isset($_FILES['upload_fasta']) || $_FILES['upload_fasta']['error'] !== UPLOAD_ERR_OK){
+			die("Error: No file uploaded or uploading failed.");
+		}
+
+		//clear up previous session
+		fromysql_todelete("", $pdo, $sessionid);
+
+		//get file
+		$file_tmp = $_FILES['upload_fasta']['tmp_name'];
+		$file_name = $_FILES['upload_fasta']['name'];
+
+		//get file contents
+		$file_content = file_get_contents($file_tmp);
+
+		//preview
+		echo '<div class="FASTA_file_preview">';
+			echo '<pre>' . htmlspecialchars($file_content) . '</pre>';
+		echo '</div>';
+
+		//transfer to mysql tmp table
+		$incremented_no = 1;
+		$header = '';
+		$seq = '';
+		$header_exist = false;	//check if header exist (formatting)
+		foreach (explode("\n", $file_content) as $row){
+			//if starts with >, it is a header
+			if (strpos($row, '>')=== 0){
+				$header_exist = true;
+				if (!empty($header) && !empty($seq)){
+					$seq_acc = $sessionid . "_" . $incremented_no;
+					$seq_name = $header;
+					$seq_length = strlen($seq);
+					$fasta_sequence = ">" .  $header . "\n" . $seq;
+
+					transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence);
+
+					$incremented_no++;
+				}
+
+				$header = substr($row, 1);
+				$seq = '';
+			} else{
+				$seq .= $row;
+			}
+		}
+
+		if (!$header_exist){
+			die("Error: File format is not FASTA. Action is halted.");
+		}
+
+		if (!empty($header) && !empty($seq)){
+			$seq_acc = $sessionid . "_" . $incremented_no;
+			$seq_name = $header;
+			$seq_length = strlen($seq);
+			$fasta_sequence = ">" . $header . "\n" . $seq;
+
+			transfertoSQL($pdo, $sessionid, $seq_acc, $seq_name, $seq_length, $fasta_sequence);
+		}
+
+
+
+
+                //select analyses
+                echo "<p><b>Please select tools to run your sequence analysis below:</b></p>";
+
+                echo "<div class='table_tools'>";
+                        echo "<table>";
+                                echo "<tr><th>Tools</th><th>Description</th><th>Select</th></tr>";
+                                echo "<tr><td>ClustalO</td><td>For protein alignment</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ClustalO'></td></tr>";
+                                echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
+                                echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
+                                echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
+                                echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
+                        echo "</table>";
+                echo "</div>";
+                echo "<br>";
+                echo "<br>";
+                echo "<p><i>Once process is running, it may take awhile to finish depending on the size of your data. Press 'Run' once and wait...</i></p>";
+                echo '<img border="0" hspace="0" src="./ica_images/sand_clock.png" width="40" style="float: left;">';
+                echo "<br>";
+
+                echo "<form method='POST' action=''>";
+                        echo '<div id="button-run" style="text-align: right;">';
+                                echo "<button type='button' id='button5' onclick='runAnalysis(event)'>Run</button>";
+                        echo "</div>";
+                echo "</form>";
+                echo '<script type="text/javascript" src="https://bioinfmsc8.bio.ed.ac.uk/~s2704130/S2_IWD/ICA_Website_250318/website_dev/ica_script.js"></script>';
+                exit;   // stop page from showing content-main
+	}
+
 
 	//Tool 0: Extract Job ID from sql
 	if (isset($_POST['button0'])){
@@ -1094,7 +1248,13 @@ _TOOL1_FASTA;
 
 	}
 
-$formSubmitted = isset($_POST['button_proceed']);  // Check if the form was submitted
+	
+
+
+
+
+
+//$formSubmitted = isset($_POST['button_proceed']);  // Check if the form was submitted
 
 //to clear tmp folder before session ends
 //echo "<p>session_id()</p>";

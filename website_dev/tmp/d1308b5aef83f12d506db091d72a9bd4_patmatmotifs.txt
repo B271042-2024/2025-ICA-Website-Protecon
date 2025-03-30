@@ -1,0 +1,45 @@
+########################################
+# Program: patmatmotifs
+# Rundate: Sat 29 Mar 2025 23:33:33
+# Commandline: patmatmotifs
+#    -full
+#    -sequence ./tmp/d1308b5aef83f12d506db091d72a9bd4_seq.fasta
+#    -outfile ./tmp/d1308b5aef83f12d506db091d72a9bd4_patmatmotifs.txt
+# Report_format: dbmotif
+# Report_file: ./tmp/d1308b5aef83f12d506db091d72a9bd4_patmatmotifs.txt
+########################################
+
+#=======================================
+#
+# Sequence: human     from: 1   to: 253
+# HitCount: 2
+#
+# Full: Yes
+# Prune: Yes
+# Data_file: /usr/share/EMBOSS/data/PROSITE/prosite.lines
+#
+#=======================================
+
+Length = 16
+Start = position 113 of sequence
+End = position 128 of sequence
+
+Motif = PRION_1
+
+NMKHMAGAAAAGAVVGGLGGYMLGSA
+     |              |
+   113              128
+
+Length = 19
+Start = position 200 of sequence
+End = position 218 of sequence
+
+Motif = PRION_2
+
+GENFTETDVKMMERVVEQMCITQYERESQ
+     |                 |
+   200                 218
+
+
+#---------------------------------------
+#---------------------------------------
