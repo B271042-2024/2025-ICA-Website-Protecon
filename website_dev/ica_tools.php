@@ -1,10 +1,30 @@
 <?php
 session_start();
 
+
 	//set session id
 	if (!isset($_SESSION['session_id'])) {
 		$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
+}
+/*
+	} else{
+		if (isset($_SESSION['previous_session_id']) && $_SESSION['previous_session_id'] !== $_SESSION['session_id']) {
+        		$old_sessionid = $_SESSION['previous_session_id'];
+
+			//delete folders and files that start with session ID
+		        $sessionFiles = escapeshellarg("./tmp/{$old_sessionid}")
+        		foreach ($sessionFiles as $file) {
+            			if (is_file($file)) {
+                			shell_exec("rm -rf {$old_sessionid}");
+            			}
+        		}
+
+			//delete rows with current sessionid
+		}
+    		// Store the current session ID as previous session ID for next request
+    		$_SESSION['previous_session_id'] = $_SESSION['session_id'];
 	}
+*/
 
 	$sessionid = $_SESSION['session_id'];
 	$date = date('Y-m-d');
@@ -122,7 +142,7 @@ session_start();
 				echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
 				echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
 				echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
-				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
+//				echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
 			echo "</table>";
 		echo "</div>";
 		echo "<br>";
@@ -834,11 +854,13 @@ echo <<<_HEAD
 
 		button{
 			padding: 8px 20px;
-			background-color: #DCDCDC;
+/*			background-color: #DCDCDC;	*/
+			background-color: #FF8C00;
 /*			font-weight: bold;	*/
 			color: black;
 			border-radius: 5px;
-			border: 1px solid black;
+			border: none;
+/*			border: 1px solid black;	*/
 			cursor: pointer;
 			font-size: 16px;
 		}
@@ -1122,7 +1144,7 @@ _TOOL1_FASTA;
                                 echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
                                 echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
                                 echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
-                                echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
+  //                              echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
                         echo "</table>";
                 echo "</div>";
                 echo "<br>";
@@ -1169,7 +1191,7 @@ _TOOL1_FASTA;
                                 echo "<tr><td>EMBOSS: patmatmotifs</td><td>Use PROSITE database to search for motifs</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='patmatmotifs'></td></tr>";
                                 echo "<tr><td>EMBOSS: plotcon</td><td>To generate protein conservation plot</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='plotcon'></td></tr>";
                                 echo "<tr><td>IQTREE</td><td>To generate phylogenetic tree</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='iqtree'></td></tr>";
-                                echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
+//                                echo "<tr><td>NGL Viewer</td><td>To view 3D protein conservation</td><td><input type='checkbox' class='select-tools' name='selecttools[]' value='ngl'></td></tr>";
 			echo "</table>";
                 echo "</div>";
                 echo "<br>";
@@ -1248,13 +1270,10 @@ _TOOL1_FASTA;
 
 	}
 
-	
 
 
 
 
-
-//$formSubmitted = isset($_POST['button_proceed']);  // Check if the form was submitted
 
 //to clear tmp folder before session ends
 //echo "<p>session_id()</p>";
