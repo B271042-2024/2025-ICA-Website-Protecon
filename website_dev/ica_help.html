@@ -30,19 +30,20 @@
 	</div>
 	<br>
         <div class="help_container">
-                <p><b>Objectives</b></p>
-                        <p>Prote-Con is developed for protein conservation analysis. Analyses offered include sequence alignment, conservation plot, motif search and phylogenetic tree construction.</p>
-			<p>As a biologist, it can be troublesome to learn how to code. Hence, we offer you solutions. Run few selected tools and download your data.</p>
+                <p><b>Introduction</b></p>
+                        <p>Prote-Con is developed for protein conservation analysis. It permits sequence alignment, conservation plot, motif search and phylogenetic tree construction.</p>
+			<p>As a biologist, coding might not be an option. Hence, we offer you solutions. Run few selected tools and download your data.</p>
 			<ol>
-				<li>Providing input. Only FASTA format are permitted in this website. FASTA format as below:</li>
+				<li>Providing input. Only FASTA format are permitted in this website. E.g.:</li>
 					<p>>sequence name</p>
 					<p>KDSJBDJBFSDFSBDFKEPJSBNBJVBSKDBFBEK</p>
 				<li>If the sequences are retrieved from NCBI Protein webpage via Prote-Con, users are allowed to filter them for analysis.</li>
+				<br>
 				<li>Protein conservation analysis</li>
 					<ul>
 						<li>ClustalO (v1.2.4) is used to align protein sequences. Huge gaps within the sequences may indicate the presence of very distant or unrelated sequences hence, it is possibly useful to exclude them from the analysis.</li>
 						<li>EMBOSS patmatmotifs (v6.6.0.0) is used to search for motifs. Protein motifs are short, recurring amino acid sequences that are considered biologically significant and form functional domains.</li>
-						<li>EMBOSS plotcon (v6.6.0.0) is used to plot protein sequence conservation. Highly conserved regions will have high value in the plot, suggesting that the mutation rates within the regions are very low across the organisms. It may also suggest that the regions may have significant functional constraints that may be useful for evolutionary studies.</li>
+						<li>EMBOSS plotcon (v6.6.0.0) is used to plot protein sequence conservation. Highly conserved regions will have high value in the plot, suggesting that the mutation rates within the regions are very low. It may also suggest that the regions may have significant functional constraints that may be useful for evolutionary studies.</li>
 						<li>IQTREE (v2.2.0) is used to construct a phylogenetic tree based on protein sequences. Protein sequences are more conserved than DNA, and often preferred in evolutionary studies, especially when involving a more distant organisms. Those with similar functions usually tend to cluster together in a phylogenetic tree.</li>
 					</ul>
 			</ol>
@@ -94,11 +95,13 @@
 						<li>Objective: To align protein sequences.</li>
 						<li>Mode: Default</li>
 					</ul>
+				<br>
                                 <li>EMBOSS patmatmotifs (v6.6.0.0)</li>
                                         <ul>
                                                 <li>Objective: To search for motifs from protein sequences.</li>
                                                 <li>Mode: Default</li>
                                         </ul>
+				<br>
                                 <li>EMBOSS plotcon (v6.6.0.0)</li>
                                         <ul>
                                                 <li>Objective: To plot protein sequence conservation.</li>
@@ -108,6 +111,7 @@
 								<li>Graph (2): png for plot, data for .txt file containing conservation scores</li>
 							</ul>
 					</ul>
+				<br>
                                 <li>IQTREE (v2.2.0)</li>
                                         <ul>
                                                 <li>Objective: To construct phylogenetic tree based on the protein sequences provided.</li>

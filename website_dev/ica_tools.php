@@ -1,34 +1,15 @@
 <?php
 session_start();
 
-
 	//set session id
 	if (!isset($_SESSION['session_id'])) {
 		$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
-}
-/*
-	} else{
-		if (isset($_SESSION['previous_session_id']) && $_SESSION['previous_session_id'] !== $_SESSION['session_id']) {
-        		$old_sessionid = $_SESSION['previous_session_id'];
-
-			//delete folders and files that start with session ID
-		        $sessionFiles = escapeshellarg("./tmp/{$old_sessionid}")
-        		foreach ($sessionFiles as $file) {
-            			if (is_file($file)) {
-                			shell_exec("rm -rf {$old_sessionid}");
-            			}
-        		}
-
-			//delete rows with current sessionid
-		}
-    		// Store the current session ID as previous session ID for next request
-    		$_SESSION['previous_session_id'] = $_SESSION['session_id'];
 	}
-*/
 
 	$sessionid = $_SESSION['session_id'];
 	$date = date('Y-m-d');
 
+	shell_exec("rm -rf ./tmp/*");	/**/
 
 	//connect to .bash_profile that has details to connect to mysql
 	function loadBashProfileVars() {
@@ -628,7 +609,7 @@ session_start();
                 }
 	}
 
-	function nglviewer(){}
+//	function nglviewer(){}
 
 
 	if (isset($_POST['button_run'])){
@@ -718,14 +699,25 @@ session_start();
 		if (!empty($_POST['input_username'])){
 			//get input
 			$username = $_POST['input_username'];
-			echo "<p><i>Your session has been saved. To retrieve your session, please enter the information below.</i></p>";
-			echo "<p><i>Username: $username; Job ID: $sessionid</i></p>";
+//			echo "<p><i>Your session has been saved. To retrieve your session, please enter the information below.</i></p>";
+//			echo "<p><i>Username: $username; Job ID: $sessionid</i></p>";
 
 			//transfer info to the 2 tables from temporary_data
 			transferDataPermanent($sessionid, $pdo, $username, $date);
 
 			//delete temporary table
 			fromysql_todelete("", $pdo, $sessionid);
+
+			//delete files in tmp
+			shell_exec("rm -rf ./tmp/" . $sessionid . "*");
+
+			//renew session
+			$_SESSION = [];
+			session_regenerate_id(true);
+			$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
+
+                        echo "<p><i>Your session has been saved. To retrieve your session, please enter the information below.</i></p>";
+                        echo "<p><i>Username: $username; Job ID: $sessionid</i></p>";
 
 		} else{
 			echo "<p>To save information, username is required.</p>";
@@ -737,11 +729,21 @@ session_start();
 
 
 	if (isset($_POST['cancel'])){
-		fromysql_todelete($pdo, $sessionid);
-		echo "<p>Session has been cleared.</p>";
+
+		fromysql_todelete("", $pdo, $sessionid);
+                shell_exec("rm -rf ./tmp/" . $sessionid . "*");
+
+		//renew session
+		$_SESSION = [];
+		session_regenerate_id(true);
+		$_SESSION['session_id'] = bin2hex(random_bytes(16)); // Initial session ID
+
+		echo "<p>Data has been cleared.</p>";
+
 	}
 
 
+	//to reset everything
         function clearsessionfilesfromtmp($sessionid){
 		shell_exec("rm -rf ./tmp/*"); /**/
         }
