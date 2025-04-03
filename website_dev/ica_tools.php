@@ -997,18 +997,18 @@ echo <<<_TOOL1_FASTA
 	<form method="POST" action="ica_tools.php" enctype="multipart/form-data">
 		<br>
 		<div class="methods" id="content-main">
-		<h1><b>Get your Sequences (Refresh page to redo this section)</b></h1>
+		<h1><b>Get your Protein Sequences (Refresh page to redo this section)</b></h1>
 			<fieldset>
 				<legend>Method 1: Use your saved Job ID</legend>
                         	<div class="input_row">
 					<label for="input0"><b>Job ID:</b></label>
                         		<input type="text" id="input0" name="input0" placeholder="Enter Job ID">
-                        		<span>e.g. 1234567890abcdef</span>
+                        		<span style="font-size: 14px">(1234567890abcdef)</span>
 				</div>
                                 <div class="input_row">
                                         <label for="input0_1"><b>Username:</b></label>
                                         <input type="text" id="input0_1" name="input0_1" placeholder="Enter Username">
-                                        <span>e.g. panda123</span>
+                                        <span style="font-size: 14px">(panda123)</span>
                                 </div>
                                 <br>
                                         <button type="submit" name="button0">Submit</button>
@@ -1018,16 +1018,16 @@ echo <<<_TOOL1_FASTA
 
 			<fieldset>
 				<legend>Method 2: Retrieve sequences from NCBI Protein</legend>
-				<p><i>To use example, click on Glucose-6-Phosphatase and Aves. Press Submit. The output will be at the bottom of the page.</i></p>
+				<p style="font-size: 14px"><i>To use example, click on Glucose-6-Phosphatase and Aves. Press Submit. The output will be at the bottom of the page.</i></p>
 				<div class="input_row">
 					<label for="input1"><b>Protein Name:</b></label>
 					<input type="text" id="input1" name="input1" placeholder="Enter protein name">
-					<span onclick="document.getElementById('input1').value='Glucose-6-Phosphatase'" class="span_click">e.g. Glucose-6-Phosphatase</span>
+					<span onclick="document.getElementById('input1').value='Glucose-6-Phosphatase'" class="span_click" style="font-size: 14px">(Glucose-6-Phosphatase)</span>
 				</div>
 				<div class="input_row">
                 			<label for="input2"><b>Taxonomy Group:</b></label>
                 			<input type="text" id="input2" name="input2" placeholder="Enter taxonomic group">
-                			<span onclick="document.getElementById('input2').value='Aves'" class="span_click">e.g. Aves</span>
+                			<span onclick="document.getElementById('input2').value='Aves'" class="span_click" style="font-size: 14px">(Aves)</span>
 				</div>
 				<br>
 				<div class="input_checkbox">
@@ -1041,7 +1041,7 @@ echo <<<_TOOL1_FASTA
 				<div class="input_row">
 					<label for="input3"><b>No. of sequences:</b></label>
 					<input type="number" id="input3" name="input3" placeholder="Default: 20, Max: 200" max="200">
-					<span>Leave blank to use default</span>
+					<span style="font-size: 14px">Leave blank to use default</span>
 				</div>
 				<br>
 					<button type="submit" name="button1">Submit</button>
@@ -1054,7 +1054,7 @@ echo <<<_TOOL1_FASTA
                                 <div class="input_row">
                                         <label for="upload_fastafile"><b>Upload FASTA file:</b></label>
                                         <input type="file" id="upload_fasta" name="upload_fasta" accept=".fasta,.fa,.txt">
-                                        <span>Only .fasta, .fa, .txt files</span>
+                                        <span style="font-size: 14px">Only .fasta, .fa, .txt files</span>
                                 </div>
                                 <br>
                                         <button type="submit" name="button2">Upload</button>
